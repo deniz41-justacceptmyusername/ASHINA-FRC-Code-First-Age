@@ -7,6 +7,8 @@ import java.io.File;
 import java.util.function.Supplier;
 import com.studica.frc.AHRS;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
@@ -15,10 +17,16 @@ import swervelib.math.SwerveMath;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import swervelib.telemetry.SwerveDriveTelemetry;
+import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final File directory = new File(Filesystem.getDeployDirectory(), "swerve");
   private final SwerveDrive swerveDrive;
+  private final Field2d m_field = new Field2d();
+  
 
   public SwerveSubsystem() {
     // Dişli oranlarına göre çevrim katsayıları
@@ -32,6 +40,7 @@ public class SwerveSubsystem extends SubsystemBase {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    
 
     // Absolute encoder olmadığı için kritik ayarlar
     swerveDrive.setHeadingCorrection(false); 
@@ -52,9 +61,17 @@ public class SwerveSubsystem extends SubsystemBase {
   public void zeroGyro() {
     swerveDrive.zeroGyro();
   }
-
+  
+  public void robotPeriodic() {
+    SwerveDriveTelemetry.updateData();
+  }
   @Override
   public void periodic() {
-    // Odometriyi her döngüde günceller
+    swerveDrive.updateOdometry();
+    m_field.setRobotPose(swerveDrive.getPose());
+    }
+  public void subsystemPeriodic() {
+    SmartDashboard.putData("Field", m_field);
   }
+  
 }
