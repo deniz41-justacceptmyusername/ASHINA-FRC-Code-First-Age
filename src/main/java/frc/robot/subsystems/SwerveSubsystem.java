@@ -19,7 +19,7 @@ import edu.wpi.first.math.util.Units;
 public class SwerveSubsystem extends SubsystemBase {
   private final File directory = new File(Filesystem.getDeployDirectory(), "swerve");
   private final SwerveDrive swerveDrive;
-  private final Field2d m_field = new Field2d();
+ // private final Field2d m_field = new Field2d();
   
 
   public SwerveSubsystem() {
@@ -59,11 +59,11 @@ public class SwerveSubsystem extends SubsystemBase {
   public void periodic() {
     // Odometry güncellemesi
     swerveDrive.updateOdometry();
-    m_field.setRobotPose(swerveDrive.getPose());
+  //  m_field.setRobotPose(swerveDrive.getPose());
     
     // Telemetry ve Dashboard güncellemeleri
     SwerveDriveTelemetry.updateData();
-    SmartDashboard.putData("Field", m_field);
+  //  SmartDashboard.putData("Field", m_field);
   }
 // Robotun konumunu manuel ayarlamak için
   public void resetOdometry(edu.wpi.first.math.geometry.Pose2d pose) {
