@@ -93,8 +93,11 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {}
 
   /** This function is called once when the robot is first started up. */
-  @Override
-  public void simulationInit() {}
+@Override
+  public void simulationInit() {
+    // drivebase'i doğrudan değil, RobotContainer üzerinden çağırıyoruz
+    m_robotContainer.getDrivebase().resetOdometry(new edu.wpi.first.math.geometry.Pose2d(3, 3, new edu.wpi.first.math.geometry.Rotation2d()));
+  }
 
   /** This function is called periodically whilst in simulation. */
   @Override

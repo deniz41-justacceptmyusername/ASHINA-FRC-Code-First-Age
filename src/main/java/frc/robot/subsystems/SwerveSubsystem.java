@@ -65,7 +65,10 @@ public class SwerveSubsystem extends SubsystemBase {
     SwerveDriveTelemetry.updateData();
     SmartDashboard.putData("Field", m_field);
   }
-
+// Robotun konumunu manuel ayarlamak için
+  public void resetOdometry(edu.wpi.first.math.geometry.Pose2d pose) {
+    swerveDrive.resetOdometry(pose);
+  }
   // robotPeriodic() ve subsystemPeriodic() metodlarını silebilirsin.
   
 }
