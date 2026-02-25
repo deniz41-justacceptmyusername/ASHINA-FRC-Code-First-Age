@@ -16,7 +16,6 @@ import frc.robot.subsystems.SwerveSubsystem;
  */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-private final SwerveSubsystem drivebase = new SwerveSubsystem();
   private final RobotContainer m_robotContainer;
 
   /**

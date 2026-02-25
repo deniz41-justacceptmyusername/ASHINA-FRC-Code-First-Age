@@ -23,22 +23,18 @@ public class SwerveSubsystem extends SubsystemBase {
   
 
   public SwerveSubsystem() {
-    // Dişli oranlarına göre çevrim katsayıları
-    double angleConversionFactor = SwerveMath.calculateDegreesPerSteeringRotation(12.8, 1);
-    double driveConversionFactor = SwerveMath.calculateMetersPerRotation(Units.inchesToMeters(4), 6.75, 1);
-
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
 
     try {
-      swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.maxSpeed, angleConversionFactor, driveConversionFactor);
+      // Çevrim katsayılarını sildik, artık her şeyi physicalproperties.json'dan 6.75 ve 26 olarak okuyacak!
+      swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.maxSpeed);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    
 
     // Absolute encoder olmadığı için kritik ayarlar
     swerveDrive.setHeadingCorrection(false); 
-    swerveDrive.setCosineCompensator(false); // Mutlak encoder yoksa bu false olmalı
+    swerveDrive.setCosineCompensator(false);
   }
 
   // RobotContainer'ın kullanacağı ana sürüş metodu
@@ -59,13 +55,17 @@ public class SwerveSubsystem extends SubsystemBase {
   public void robotPeriodic() {
     SwerveDriveTelemetry.updateData();
   }
-  @Override
+@Override
   public void periodic() {
+    // Odometry güncellemesi
     swerveDrive.updateOdometry();
     m_field.setRobotPose(swerveDrive.getPose());
-    }
-  public void subsystemPeriodic() {
+    
+    // Telemetry ve Dashboard güncellemeleri
+    SwerveDriveTelemetry.updateData();
     SmartDashboard.putData("Field", m_field);
   }
+
+  // robotPeriodic() ve subsystemPeriodic() metodlarını silebilirsin.
   
 }
