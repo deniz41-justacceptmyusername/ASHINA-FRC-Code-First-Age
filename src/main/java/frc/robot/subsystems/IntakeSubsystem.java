@@ -4,12 +4,33 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.IntakeConstants;
 
-public class ExampleSubsystem extends SubsystemBase {
-  /** Creates a new ExampleSubsystem. */
-  public ExampleSubsystem() {}
+import static frc.robot.Constants.IntakeConstants.*;
+
+public class IntakeSubsystem extends SubsystemBase {
+  private final TalonFX m_intakeLeader = new TalonFX(51, kCANBus);
+  final TalonFX m_intakeFollower = new TalonFX(52, IntakeConstants.kCANBus);
+  final TalonFX m_shooter_Leader = new TalonFX(61, IntakeConstants.kCANBus);
+  final TalonFX m_shooterFollower = new TalonFX(62, IntakeConstants.kCANBus);
+
+  public IntakeSubsystem() {
+        // Follower motor, Leader motoru takip etsin
+        m_intakeFollower.setControl(new Follower(m_intakeLeader.getDeviceID()));
+    }
+  
+  public void setIntakeSpeed(double speed) {
+
+  
+
+        m_intakeLeader.setControl(new DutyCycleOut(speed));
+    }
 
   /**
    * Example command factory method.
