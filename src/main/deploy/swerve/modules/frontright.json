@@ -15,9 +15,9 @@
     "canbus": "rio"
   },
   "encoder": {
-    "type": "none",
+    "type": "cancoder",
     "id": 10,
-    "canbus": null
+    "canbus": "rio"
   },
   "inverted": {
     "drive": true,
