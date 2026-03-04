@@ -2,19 +2,17 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand; // RunCommand Import edildi
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants;
-import frc.robot.Constants.IntakeConstants;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.IntakeSubsystem; // IntakeSubsystem import edildi
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
-import com.ctre.phoenix6.hardware.TalonFX;
-import static frc.robot.Constants.IntakeConstants;
-import static frc.robot.Constants.ShooterConstants;
 
 public class RobotContainer {  
-    // Subsystem tanımı
+    // Subsystem tanımları
     private final SwerveSubsystem drivebase = new SwerveSubsystem();
+    private final IntakeSubsystem m_intake = new IntakeSubsystem(); // Intake buraya bağlandı
   
     // Xbox Kontrolcüsü (Port 0)
     private final CommandXboxController m_driverController =
@@ -40,26 +38,23 @@ public class RobotContainer {
     // Start butonu veya B butonu Gyro'yu sıfırlar (Robotun baktığı yer ileri olur)
     m_driverController.start().onTrue(new InstantCommand(drivebase::zeroGyro));
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
+
+    // 👇 EKLENEN RB (Right Bumper) TUŞ ATAMASI 👇
+    // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
+    m_driverController.rightBumper().whileTrue(
+        new RunCommand(() -> m_intake.setIntakeSpeed(0.7), m_intake)
+    ).onFalse(
+        new InstantCommand(() -> m_intake.stop(), m_intake)
+    );
   }
-  private final TalonFX m_intakeLeader = new TalonFX(51, IntakeConstants.kCANBus);
-   private final TalonFX m_intakeFollower = new TalonFX(51, IntakeConstants.kCANBus);
-   private final TalonFX m_shooter_Leader = new TalonFX(61, IntakeConstants.kCANBus);
-   private final TalonFX m_shooterFollower = new TalonFX(62, IntakeConstants.kCANBus);
-
-   
-   
-
-
-
 
   public Command getAutonomousCommand() {
     // Otonom komutu buraya gelecek
     return null; 
   }
 
-  // 👇 EKLENEN YENİ METOD BURASI 👇
   // Robot.java'nın drivebase'e ulaşabilmesi için bir köprü görevi görüyor.
   public SwerveSubsystem getDrivebase() {
     return drivebase;
   }
-} 
+}

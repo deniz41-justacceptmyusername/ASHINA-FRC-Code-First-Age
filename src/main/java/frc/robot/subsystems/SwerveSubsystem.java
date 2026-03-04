@@ -33,7 +33,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     // Absolute encoder olmadığı için kritik ayarlar
     swerveDrive.setHeadingCorrection(true); 
-    swerveDrive.setCosineCompensator(true);
+    swerveDrive.setCosineCompensator(false);
   }
 
   // RobotContainer'ın kullanacağı ana sürüş metodu

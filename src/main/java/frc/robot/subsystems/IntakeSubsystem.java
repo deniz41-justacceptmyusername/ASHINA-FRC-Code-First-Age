@@ -4,33 +4,44 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 
-import static frc.robot.Constants.IntakeConstants.*;
-
 public class IntakeSubsystem extends SubsystemBase {
-  private final TalonFX m_intakeLeader = new TalonFX(51, kCANBus);
-  final TalonFX m_intakeFollower = new TalonFX(52, IntakeConstants.kCANBus);
-  final TalonFX m_shooter_Leader = new TalonFX(61, IntakeConstants.kCANBus);
-  final TalonFX m_shooterFollower = new TalonFX(62, IntakeConstants.kCANBus);
+  // Motorları Right ve Left olarak bağımsız tanımladık
+  private final TalonFX m_intakeRight = new TalonFX(51, IntakeConstants.kCANBus);
+  private final TalonFX m_intakeLeft = new TalonFX(52, IntakeConstants.kCANBus);
+  
+  // Shooter motorların duruyor
+//  private final TalonFX m_shooterLeader = new TalonFX(61, IntakeConstants.kCANBus);
+//  private final TalonFX m_shooterFollower = new TalonFX(62, IntakeConstants.kCANBus);
+
+  // İki motoru aynı anda sürmek için ortak kontrol talebi
+  private final DutyCycleOut m_request = new DutyCycleOut(0.0);
 
   public IntakeSubsystem() {
-        // Follower motor, Leader motoru takip etsin
-        m_intakeFollower.setControl(new Follower(m_intakeLeader.getDeviceID()));
+    var currentConfigs = new MotorOutputConfigs();
+ currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
+      m_intakeLeft.getConfigurator().apply(currentConfigs);
     }
   
+  // İki motoru aynı anda ve aynı hızda çalıştıran metot
   public void setIntakeSpeed(double speed) {
-
-  
-
-        m_intakeLeader.setControl(new DutyCycleOut(speed));
+        m_intakeRight.setControl(m_request.withOutput(speed));
+        m_intakeLeft.setControl(m_request.withOutput(speed));
     }
+
+  // RB tuşundan elimizi çekince motorları durduracak metot
+  public void stop() {
+        m_intakeRight.stopMotor();
+        m_intakeLeft.stopMotor();
+  }
 
   /**
    * Example command factory method.
@@ -38,21 +49,13 @@ public class IntakeSubsystem extends SubsystemBase {
    * @return a command
    */
   public Command exampleMethodCommand() {
-    // Inline construction of command goes here.
-    // Subsystem::RunOnce implicitly requires `this` subsystem.
     return runOnce(
         () -> {
           /* one-time action goes here */
         });
   }
 
-  /**
-   * An example method querying a boolean state of the subsystem (for example, a digital sensor).
-   *
-   * @return value of some boolean subsystem state, such as a digital sensor.
-   */
   public boolean exampleCondition() {
-    // Query some boolean state, such as a digital sensor.
     return false;
   }
 
