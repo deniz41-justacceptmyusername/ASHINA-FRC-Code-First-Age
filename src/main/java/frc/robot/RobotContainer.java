@@ -2,11 +2,14 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand; // RunCommand Import edildi
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.IntakeSubsystem; // IntakeSubsystem import edildi
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
+<<<<<<< HEAD
 public class RobotContainer {
   // Subsystem tanımı
   private final SwerveSubsystem drivebase = new SwerveSubsystem();
@@ -30,11 +33,45 @@ public class RobotContainer {
     // Varsayılan komut olarak sürüşü ata
     drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
   }
+=======
+public class RobotContainer {  
+    // Subsystem tanımları
+    private final SwerveSubsystem drivebase = new SwerveSubsystem();
+    private final IntakeSubsystem m_intake = new IntakeSubsystem(); // Intake buraya bağlandı
+  
+    // Xbox Kontrolcüsü (Port 0)
+    private final CommandXboxController m_driverController =
+        new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  
+    public RobotContainer() {
+      configureBindings();
+  
+      // Sürüş Giriş Akışı (Input Stream) Yapılandırması
+      SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
+          () -> -m_driverController.getLeftY(),
+          () -> -m_driverController.getLeftX())
+          .withControllerRotationAxis(() -> -m_driverController.getRightX())
+          .deadband(OperatorConstants.DEADBAND)
+          .scaleTranslation(0.8) // Hızı %80'e sınırlar, güvenli sürüş sağlar
+          .allianceRelativeControl(true);
+  
+      // Varsayılan komut olarak sürüşü ata
+      drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
+    }
+>>>>>>> dev
 
   private void configureBindings() {
     // Start butonu veya B butonu Gyro'yu sıfırlar (Robotun baktığı yer ileri olur)
     m_driverController.start().onTrue(new InstantCommand(drivebase::zeroGyro));
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
+
+    // 👇 EKLENEN RB (Right Bumper) TUŞ ATAMASI 👇
+    // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
+    m_driverController.rightBumper().whileTrue(
+        new RunCommand(() -> m_intake.setIntakeSpeed(0.7), m_intake)
+    ).onFalse(
+        new InstantCommand(() -> m_intake.stop(), m_intake)
+    );
   }
 
   public Command getAutonomousCommand() {
@@ -42,9 +79,16 @@ public class RobotContainer {
     return null; 
   }
 
+<<<<<<< HEAD
   // 👇 EKLENEN YENİ METOD BURASI 👇
+=======
+>>>>>>> dev
   // Robot.java'nın drivebase'e ulaşabilmesi için bir köprü görevi görüyor.
   public SwerveSubsystem getDrivebase() {
     return drivebase;
   }
+<<<<<<< HEAD
 } 
+=======
+}
+>>>>>>> dev

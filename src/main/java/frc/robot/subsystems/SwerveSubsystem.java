@@ -14,7 +14,6 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final File directory = new File(Filesystem.getDeployDirectory(), "swerve");
@@ -33,7 +32,11 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     // Absolute encoder olmadığı için kritik ayarlar
+<<<<<<< HEAD
     swerveDrive.setHeadingCorrection(false); 
+=======
+    swerveDrive.setHeadingCorrection(true); 
+>>>>>>> dev
     swerveDrive.setCosineCompensator(false);
   }
 
@@ -43,7 +46,7 @@ public class SwerveSubsystem extends SubsystemBase {
       swerveDrive.driveFieldOriented(velocity.get());
     });
   }
-
+  
   public SwerveDrive getSwerveDrive() {
     return swerveDrive;
   }

@@ -20,5 +20,19 @@ public final class Constants {
 
     public static final double DEADBAND = 0.05;
   }
+<<<<<<< HEAD
   public static final double maxSpeed = Units.feetToMeters(5);
+=======
+  public static final class IntakeConstants {
+        public static final int kLeaderID = 51;
+        public static final int kFollowerID = 52;
+        public static final String kCANBus = "rio";
+    }
+
+    public static final class ShooterConstants {
+        public static final int kLeaderID = 61;
+        public static final int kFollowerID = 62;
+    }
+  public static final double maxSpeed = Units.feetToMeters(4.5);
+>>>>>>> dev
 }
