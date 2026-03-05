@@ -34,7 +34,7 @@ public class IntakeSubsystem extends SubsystemBase {
 var talonFXConfigs = new TalonFXConfiguration();
 
 // Motor Çıktı ayarlarından NeutralMode'u Coast olarak seç
-talonFXConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+talonFXConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
 // Ayarları Kraken motoruna uygula
       m_intakeback.getConfigurator().apply(currentConfigs);
@@ -50,10 +50,12 @@ talonFXConfigs.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     public void getdown() {
       m_intakefront.setControl(m_request.withOutput(0.1));
       intakestat = 0;
+      m_intakeback.setNeutralMode(NeutralModeValue.Coast);
     }
     public void getup(){
       m_intakefront.setControl(m_request.withOutput(-0.1));
       intakestat = 1;
+      m_intakeback.setNeutralMode(NeutralModeValue.Brake);
       frontstop();
     }
 
