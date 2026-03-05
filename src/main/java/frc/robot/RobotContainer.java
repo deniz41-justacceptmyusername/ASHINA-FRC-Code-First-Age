@@ -21,8 +21,8 @@ public class RobotContainer {
     // Sürüş Giriş Akışı (Input Stream) Yapılandırması
     SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
         () -> -m_driverController.getLeftY(),
-        () -> -m_driverController.getLeftX())
-        .withControllerRotationAxis(() -> -m_driverController.getRightX())
+        () -> m_driverController.getLeftX())
+        .withControllerRotationAxis(() -> m_driverController.getRightX())
         .deadband(OperatorConstants.DEADBAND)
         .scaleTranslation(0.8) // Hızı %80'e sınırlar, güvenli sürüş sağlar
         .allianceRelativeControl(true);
