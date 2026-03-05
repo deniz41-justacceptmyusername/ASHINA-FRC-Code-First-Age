@@ -28,19 +28,19 @@ public class IntakeSubsystem extends SubsystemBase {
   public IntakeSubsystem() {
     var currentConfigs = new MotorOutputConfigs();
  currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
-      m_intakeLeft.getConfigurator().apply(currentConfigs);
+      //m_intakeLeft.getConfigurator().apply(currentConfigs);
     }
   
   // İki motoru aynı anda ve aynı hızda çalıştıran metot
   public void setIntakeSpeed(double speed) {
         m_intakeRight.setControl(m_request.withOutput(speed));
-        m_intakeLeft.setControl(m_request.withOutput(speed));
+        //m_intakeLeft.setControl(m_request.withOutput(speed));
     }
 
   // RB tuşundan elimizi çekince motorları durduracak metot
   public void stop() {
         m_intakeRight.stopMotor();
-        m_intakeLeft.stopMotor();
+        //m_intakeLeft.stopMotor();
   }
 
   /**

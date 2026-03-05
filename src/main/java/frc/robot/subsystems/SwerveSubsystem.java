@@ -32,11 +32,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     // Absolute encoder olmadığı için kritik ayarlar
-<<<<<<< HEAD
     swerveDrive.setHeadingCorrection(false); 
-=======
-    swerveDrive.setHeadingCorrection(true); 
->>>>>>> dev
     swerveDrive.setCosineCompensator(false);
   }
 
