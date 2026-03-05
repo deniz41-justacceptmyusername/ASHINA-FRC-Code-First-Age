@@ -44,7 +44,17 @@ public class RobotContainer {
     m_driverController.rightBumper().whileTrue(
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.7), m_intake)
     ).onFalse(
-        new InstantCommand(() -> m_intake.stop(), m_intake)
+        new InstantCommand(() -> m_intake.frontstop(), m_intake)
+    );
+    m_driverController.pov(0).whileTrue(
+      new RunCommand(() -> m_intake.getup(), m_intake)
+    ).onFalse(
+        new InstantCommand(() -> m_intake.backstop(), m_intake)
+    );
+        m_driverController.pov(180).whileTrue(
+      new RunCommand(() -> m_intake.getdown(), m_intake)
+    ).onFalse(
+        new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
   }
 
