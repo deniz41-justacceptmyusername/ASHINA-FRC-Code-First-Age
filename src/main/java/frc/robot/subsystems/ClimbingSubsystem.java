@@ -10,8 +10,8 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
 public class ClimbingSubsystem extends SubsystemBase{
-    //private final SparkMax m_climberRight = new SparkMax(61, MotorType.kBrushless);
-    //private final SparkMax m_climberLeft = new SparkMax(62, MotorType.kBrushless);
+    private final SparkMax m_climberRight = new SparkMax(61, MotorType.kBrushless);
+    private final SparkMax m_climberLeft = new SparkMax(62, MotorType.kBrushless);
 
     public ClimbingSubsystem() {
 
@@ -27,18 +27,18 @@ public class ClimbingSubsystem extends SubsystemBase{
         m_climbing.idleMode(SparkMaxConfig.IdleMode.kBrake);
         rightClimberConfig.inverted(true); // motoru sağa doğru çevirir
 
-        //m_climberRight.configure(m_climbing, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters); // bunların ne işe yaradığını bende anlamadım ama gemini abi böyle yap dedi
-        //m_climberLeft.configure(leftClimberConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        m_climberRight.configure(m_climbing, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters); // bunların ne işe yaradığını bende anlamadım ama gemini abi böyle yap dedi
+        m_climberLeft.configure(leftClimberConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public void RunClimber(double speed) {
         // motorları çalıştırır
-        //m_climberRight.set(speed);
-        //m_climberLeft.set(speed);
+        m_climberRight.set(speed);
+        m_climberLeft.set(speed);
     }
     public void stop() {
         // motorları durdurur
-        //m_climberRight.stopMotor();
-        //m_climberLeft.stopMotor();
+        m_climberRight.stopMotor();
+        m_climberLeft.stopMotor();
     }
 }
