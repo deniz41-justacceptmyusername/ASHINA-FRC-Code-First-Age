@@ -7,12 +7,14 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.IntakeSubsystem; // IntakeSubsystem import edildi
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import swervelib.SwerveInputStream;
 
 public class RobotContainer {  
     // Subsystem tanımları
     private final SwerveSubsystem drivebase = new SwerveSubsystem();
     private final IntakeSubsystem m_intake = new IntakeSubsystem(); // Intake buraya bağlandı
+    private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   
     // Xbox Kontrolcüsü (Port 0)
     private final CommandXboxController m_driverController =
@@ -36,7 +38,7 @@ public class RobotContainer {
 
   private void configureBindings() {
     // Start butonu veya B butonu Gyro'yu sıfırlar (Robotun baktığı yer ileri olur)
-    //m_driverController.start().onTrue(new InstantCommand(drivebase::zeroGyro));
+    m_driverController.start().onTrue(new InstantCommand(drivebase::zeroGyro));
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
 
     // 👇 EKLENEN RB (Right Bumper) TUŞ ATAMASI 👇
@@ -55,6 +57,10 @@ public class RobotContainer {
       new RunCommand(() -> m_intake.getdown(), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.backstop(), m_intake)
+    );
+
+    m_driverController.rightTrigger().whileTrue(
+      new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
     );
   }
 
