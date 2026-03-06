@@ -5,9 +5,11 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -15,9 +17,9 @@ import frc.robot.Constants.IntakeConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
   // Motorları Right ve Left olarak bağımsız tanımladık
-  private final TalonFX m_intakeRight = new TalonFX(51, IntakeConstants.kCANBus);
-  private final TalonFX m_intakeLeft = new TalonFX(52, IntakeConstants.kCANBus);
-  
+  private final TalonFX m_intakefront = new TalonFX(51, IntakeConstants.kCANBus);
+  private final TalonFX m_intakeback = new TalonFX(52, IntakeConstants.kCANBus);
+  public int intakestat=1;
   // Shooter motorların duruyor
 //  private final TalonFX m_shooterLeader = new TalonFX(61, IntakeConstants.kCANBus);
 //  private final TalonFX m_shooterFollower = new TalonFX(62, IntakeConstants.kCANBus);
@@ -28,19 +30,42 @@ public class IntakeSubsystem extends SubsystemBase {
   public IntakeSubsystem() {
     var currentConfigs = new MotorOutputConfigs();
  currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
-      m_intakeLeft.getConfigurator().apply(currentConfigs);
+ // Motorun yapılandırma (configuration) nesnesini oluştur
+var talonFXConfigs = new TalonFXConfiguration();
+
+// Motor Çıktı ayarlarından NeutralMode'u Coast olarak seç
+talonFXConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+// Ayarları Kraken motoruna uygula
+      m_intakeback.getConfigurator().apply(currentConfigs);
     }
   
   // İki motoru aynı anda ve aynı hızda çalıştıran metot
   public void setIntakeSpeed(double speed) {
-        m_intakeRight.setControl(m_request.withOutput(speed));
-        m_intakeLeft.setControl(m_request.withOutput(speed));
+      if(intakestat==0){
+        m_intakefront.setControl(m_request.withOutput(speed));}
+      else m_intakefront.setControl(m_request.withOutput(0));
+        //m_intakeLeft.setControl(m_request.withOutput(speed));
+    }
+    public void getdown() {
+      m_intakeback.setControl(m_request.withOutput(0.1));
+      intakestat = 0;
+      m_intakeback.setNeutralMode(NeutralModeValue.Coast);
+    }
+    public void getup(){
+      m_intakeback.setControl(m_request.withOutput(-0.2));
+      intakestat = 1;
+      m_intakeback.setNeutralMode(NeutralModeValue.Brake);
+      frontstop();
     }
 
   // RB tuşundan elimizi çekince motorları durduracak metot
-  public void stop() {
-        m_intakeRight.stopMotor();
-        m_intakeLeft.stopMotor();
+  public void frontstop() {
+        m_intakefront.stopMotor();
+        //m_intakeLeft.stopMotor();
+  }
+  public void backstop(){
+    m_intakeback.stopMotor();
   }
 
   /**

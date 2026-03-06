@@ -17,6 +17,7 @@ import edu.wpi.first.math.util.Units;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+
     public static final double DEADBAND = 0.05;
   }
   public static final class IntakeConstants {
@@ -26,8 +27,9 @@ public final class Constants {
     }
 
     public static final class ShooterConstants {
-        public static final int kLeaderID = 61;
-        public static final int kFollowerID = 62;
+        //public static final int kLeaderID = 61;
+        //public static final int kFollowerID = 62;
     }
-  public static final double maxSpeed = Units.feetToMeters(4.5);
+  public static final double maxSpeed = Units.feetToMeters(20);
+
 }
