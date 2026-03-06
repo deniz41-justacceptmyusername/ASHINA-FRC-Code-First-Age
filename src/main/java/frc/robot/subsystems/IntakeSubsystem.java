@@ -48,12 +48,12 @@ talonFXConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         //m_intakeLeft.setControl(m_request.withOutput(speed));
     }
     public void getdown() {
-      m_intakefront.setControl(m_request.withOutput(0.1));
+      m_intakeback.setControl(m_request.withOutput(0.1));
       intakestat = 0;
       m_intakeback.setNeutralMode(NeutralModeValue.Coast);
     }
     public void getup(){
-      m_intakefront.setControl(m_request.withOutput(-0.1));
+      m_intakeback.setControl(m_request.withOutput(-0.2));
       intakestat = 1;
       m_intakeback.setNeutralMode(NeutralModeValue.Brake);
       frontstop();
