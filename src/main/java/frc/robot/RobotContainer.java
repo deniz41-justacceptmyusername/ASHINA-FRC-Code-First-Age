@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand; // RunCommand Import edildi
@@ -62,6 +63,17 @@ public class RobotContainer {
     m_driverController.rightTrigger().whileTrue(
       new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
     );
+    m_driverController.leftBumper().whileTrue(
+      new InstantCommand(() -> {
+       Pose2d currentPose = drivebase.getPose();
+
+        m_shooter.shootBall(
+          currentPose.getX(),
+         currentPose.getY(),
+          currentPose.getRotation().getRadians()
+        );
+      }, m_shooter)
+    );
   }
 
   public Command getAutonomousCommand() {
@@ -73,4 +85,6 @@ public class RobotContainer {
   public SwerveSubsystem getDrivebase() {
     return drivebase;
   }
-}
+  
+  }
+
