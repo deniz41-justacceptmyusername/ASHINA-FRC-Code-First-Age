@@ -15,6 +15,8 @@ import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final File directory = new File(Filesystem.getDeployDirectory(), "swerve");
@@ -51,6 +53,16 @@ public class SwerveSubsystem extends SubsystemBase {
   public void zeroGyro() {
     swerveDrive.zeroGyro();
   }
+  public void flipGyro180() {
+    // Robotun anlık pozisyonunu ve açısını alıyoruz
+    Pose2d currentPose = swerveDrive.getPose(); 
+    
+    // Mevcut açıya 180 derece (Math.PI radyan) ekliyoruz
+    Rotation2d invertedRotation = currentPose.getRotation().plus(Rotation2d.fromDegrees(180));
+    
+    // Konumu aynı bırakıp, açıyı tersine çevrilmiş haliyle güncelliyoruz
+    swerveDrive.resetOdometry(new Pose2d(currentPose.getTranslation(), invertedRotation));
+}
   
   public void robotPeriodic() {
     SwerveDriveTelemetry.updateData();

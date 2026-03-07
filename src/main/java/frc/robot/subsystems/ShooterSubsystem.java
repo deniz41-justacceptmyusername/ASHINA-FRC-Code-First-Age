@@ -48,7 +48,6 @@ public ShooterSubsystem() {
     var currentConfigs = new MotorOutputConfigs();
  currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
         m_shooterLeft.getConfigurator().apply(currentConfigs);
-        m_shooterRight.getConfigurator().apply(currentConfigs);
 }
 
 public void setShooterSpeed(double speed) {
