@@ -43,17 +43,31 @@ public class RobotContainer {
     }
 
   private void registerPathPlannerCommands() {
-    // Rota üzerinde "intake opening" marker'ını görünce çalışacak komut:
-    // Intake'i indirir, belirlediğin süre kadar (örn 1.5 sn) çalıştırır ve sonra motoru durdurur.
+    // 1. Sadece mekanizmayı indiren komut (Eski haline döndü)
     NamedCommands.registerCommand("intake opening", 
         new RunCommand(() -> m_intake.getdown(), m_intake)
-            .withTimeout(0.5) // Kaç saniye aşağı inmesi gerekiyorsa buraya yaz
-            .andThen(() -> m_intake.backstop(), m_intake)  
+            .withTimeout(1.5) // İnme süresi (ihtiyacına göre değiştir)
+            .andThen(() -> m_intake.backstop(), m_intake)
     );
+
+    // 2. YENİ KOMUT: Sadece içeri alma tekerleklerini döndürür
+    NamedCommands.registerCommand("intage begin", 
+        new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
+            .withTimeout(4.0) // 4 saniye boyunca tekerlekler döner
+            .andThen(() -> m_intake.frontstop(), m_intake) // Sonra tekerlekleri durdurur
+    );
+
+    // 3. 5 saniyelik atış komutu
+    NamedCommands.registerCommand("shooter komutu", 
+        new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
+            .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
+            .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
+    );
+  }
 
     // BS ile AS rotası arasındaki 5 saniyelik atış komutu:
     NamedCommands.registerCommand("shooter komutu", 
-        new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter) // ⚠️ DİKKAT: Hız 0 ise motor dönmez, ateş etmek için buraya 0.8 gibi bir atış hızı girmelisin.
+        new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
             .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
             .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
     );
