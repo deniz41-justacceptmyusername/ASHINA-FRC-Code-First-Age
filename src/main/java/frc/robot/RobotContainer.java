@@ -42,7 +42,7 @@ public class RobotContainer {
       drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
     }
 
-  private void registerPathPlannerCommands() {
+ private void registerPathPlannerCommands() {
     // 1. Sadece mekanizmayı indiren komut (Eski haline döndü)
     NamedCommands.registerCommand("intake opening", 
         new RunCommand(() -> m_intake.getdown(), m_intake)
@@ -60,14 +60,6 @@ public class RobotContainer {
     // 3. 5 saniyelik atış komutu
     NamedCommands.registerCommand("shooter komutu", 
         new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
-            .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
-            .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
-    );
-  }
-
-    // BS ile AS rotası arasındaki 5 saniyelik atış komutu:
-    NamedCommands.registerCommand("shooter komutu", 
-        new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
             .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
             .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
     );
