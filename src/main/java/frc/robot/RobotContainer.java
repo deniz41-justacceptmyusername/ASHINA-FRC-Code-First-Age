@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand; 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.ShootWhileMoving;
 import frc.robot.subsystems.IntakeSubsystem; 
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -65,40 +66,42 @@ public class RobotContainer {
     );
   }
 
-  private void configureBindings() {
+private void configureBindings() {
     m_driverController.start().onTrue(new InstantCommand(drivebase::flipGyro180));
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
 
-    m_driverController.rightBumper().whileTrue(
+    // --- L1 (Left Bumper) ile Intake (İçeri Alma) ---
+    m_driverController.leftBumper().whileTrue(
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );
+
+    // --- D-Pad (Yön Tuşları) Kontrolleri ---
     m_driverController.pov(0).whileTrue(
       new RunCommand(() -> m_intake.getup(), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
-        m_driverController.pov(180).whileTrue(
+    
+    m_driverController.pov(180).whileTrue(
       new RunCommand(() -> m_intake.getdown(), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
 
-    m_driverController.rightTrigger().whileTrue(
-      new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
-    );
-    m_driverController.leftBumper().whileTrue(
-      new InstantCommand(() -> {
-       Pose2d currentPose = drivebase.getPose();
-
-        m_shooter.shootBall(
-          currentPose.getX(),
-         currentPose.getY(),
-          currentPose.getRotation().getRadians()
-        );
-      }, m_shooter)
-    );
+    // --- R1 (Right Bumper) ile ŞUT (Gerçek Atış + Simülasyon) ---
+    m_driverController.rightBumper()
+      .whileTrue(new ShootWhileMoving(drivebase, m_shooter, m_driverController))
+      .onTrue(new InstantCommand(() -> {
+          // R1'e basıldığı an simülasyonda da topu fırlat
+          Pose2d currentPose = drivebase.getPose();
+          m_shooter.shootBall(
+            currentPose.getX(),
+            currentPose.getY(),
+            currentPose.getRotation().getRadians()
+          );
+      }, m_shooter));
   }
 
   public Command getAutonomousCommand() {

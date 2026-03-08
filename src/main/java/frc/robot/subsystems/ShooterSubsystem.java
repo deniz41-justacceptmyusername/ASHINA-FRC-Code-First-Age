@@ -65,6 +65,42 @@ public class ShooterSubsystem extends SubsystemBase {
         m_shooterLeft.stopMotor();
     }
 
+    // --- YENİ EKLENEN METODLAR BURADAN BAŞLIYOR ---
+
+    /**
+     * Hedefe olan mesafeye göre shooter motorlarına verilecek gücü (%0 ile %100 arası) hesaplar.
+     * İleride sistemi RPM tabanlı yaparsanız bu kısmı bir Look-up Table'a çevirmelisiniz.
+     */
+    public double getWantedDutyCycle(double distanceMeters) {
+        // Lineer bir artış varsayıyoruz: Uzaklık arttıkça güç artar.
+        // Örnek: 2 metrede %50, 5 metrede %80. 
+        // DİKKAT: Bu `0.1` ve `0.3` değerlerini sahada atış yaparak kendi robotunuza göre kalibre etmelisiniz.
+        double power = (distanceMeters * 0.1) + 0.3; 
+        
+        // Güvenlik sınırları: Motor gücü %100'ü (1.0) geçemez, %20'nin (0.2) altına inemez.
+        if (power > 1.0) power = 1.0; 
+        if (power < 0.2) power = 0.2;
+        
+        return power;
+    }
+
+    /**
+     * Motorların hedeflenen hıza ulaşıp ulaşmadığını kontrol eder.
+     * PID ile RPM kontrolü yapmadığımız için, motora binen voltaj üzerinden tahmini bir "hazır" bilgisi döndürür.
+     */
+    public boolean isAtSpeed(double wantedDutyCycle) {
+        // Phoenix 6 kütüphanesinden motorun anlık voltajını çekiyoruz.
+        double currentVoltage = m_shooterRight.getMotorVoltage().getValueAsDouble();
+        
+        // Hedeflenen voltaj (Robot bataryasını 12V varsayıyoruz)
+        double targetVoltage = wantedDutyCycle * 12.0;
+        
+        // Mevcut voltaj, hedeflenen voltaja yeterince yakınsa (örneğin 1.5V altı bir fark varsa) hazırız demektir.
+        return currentVoltage >= (targetVoltage - 1.5);
+    }
+
+    // --- YENİ EKLENEN METODLAR BURADA BİTİYOR ---
+
     @Override
     public void simulationPeriodic() {
         if (isBallInAir) {
