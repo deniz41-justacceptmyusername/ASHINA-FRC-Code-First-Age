@@ -63,7 +63,7 @@ public class RobotContainer {
             .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
             .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
     );
-  }
+  
 
   private void configureBindings() {
     m_driverController.start().onTrue(new InstantCommand(drivebase::flipGyro180));
