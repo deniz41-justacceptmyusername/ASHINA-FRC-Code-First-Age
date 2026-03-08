@@ -10,16 +10,16 @@ import frc.robot.Constants.ShooterConstants;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
-
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher; // ARRAY OLARAK DEĞİŞTİ
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-private final TalonFX m_shooterRight = new TalonFX(71, ShooterConstants.kCANBus);
-private final TalonFX m_shooterLeft = new TalonFX(72, ShooterConstants.kCANBus);
+    private final TalonFX m_shooterRight = new TalonFX(71, ShooterConstants.kCANBus);
+    private final TalonFX m_shooterLeft = new TalonFX(72, ShooterConstants.kCANBus);
 
- private Timer shotTimer = new Timer();
+    private Timer shotTimer = new Timer();
     private boolean isBallInAir = false;
 
     private double startX = 0.0;
@@ -32,68 +32,63 @@ private final TalonFX m_shooterLeft = new TalonFX(72, ShooterConstants.kCANBus);
 
     private final double GRAVITY = 9.81;
 
-    public void shootBall(double currentRobotX, double currentRobotY, double currentRobotYaw) {
-      this.startX = currentRobotX;
-      this.startY = currentRobotY;
-      this.yawAngle = currentRobotYaw;
-        
-        isBallInAir = true;
-        shotTimer.restart();
+    // 1. DÜZELTİLEN KISIM: Veriyi tek bir obje değil, "Toplar Listesi" olarak yayınlıyoruz
+    private final StructArrayPublisher<Pose3d> ballPublisher = NetworkTableInstance.getDefault()
+            .getTable("SmartDashboard").getStructArrayTopic("HarbiTop", Pose3d.struct).publish();
 
+    private final DutyCycleOut m_request = new DutyCycleOut(0.0);
+
+    double FatihSultanMehmet = 1453;
+
+    public ShooterSubsystem() {
+        var currentConfigs = new MotorOutputConfigs();
+        currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
+        m_shooterLeft.getConfigurator().apply(currentConfigs);
     }
 
-private final DutyCycleOut m_request = new DutyCycleOut(0.0);
+    public void shootBall(double currentRobotX, double currentRobotY, double currentRobotYaw) {
+        this.startX = currentRobotX;
+        this.startY = currentRobotY;
+        this.yawAngle = currentRobotYaw;
 
-public ShooterSubsystem() {
-    var currentConfigs = new MotorOutputConfigs();
- currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
-        m_shooterLeft.getConfigurator().apply(currentConfigs);
-}
+        isBallInAir = true;
+        shotTimer.restart();
+    }
 
-public void setShooterSpeed(double speed) {
+    public void setShooterSpeed(double speed) {
         m_shooterRight.setControl(m_request.withOutput(speed));
         m_shooterLeft.setControl(m_request.withOutput(speed));
-}
-public void stop() {
+    }
+
+    public void stop() {
         m_shooterRight.stopMotor();
         m_shooterLeft.stopMotor();
-  }
-  public void simulationPeriodic() {
-    if (isBallInAir) {
-            double t = shotTimer.get(); // Havada geçen süre (saniye)
+    }
 
-            // 1. Z EKSENİ (Yerden Yükseklik)
-            // Z = Z_ilk + (V * sin(pitch) * t) - (0.5 * g * t^2)
+    @Override
+    public void simulationPeriodic() {
+        if (isBallInAir) {
+            double t = shotTimer.get(); // Havada geçen süre
+
+            // Matematiksel Fizik Hesaplamaları
             double z = startZ + (velocity * Math.sin(pitchAngle) * t) - (0.5 * GRAVITY * Math.pow(t, 2));
             double horizontalDistance = velocity * Math.cos(pitchAngle) * t;
-
             double x = startX + (horizontalDistance * Math.cos(yawAngle));
-
             double y = startY + (horizontalDistance * Math.sin(yawAngle));
 
-            if (z < 0.1) { // Top yere değdiyse (yarıçapı kadar mesafe kalmışsa)
+            if (z < 0.1) { 
                 isBallInAir = false;
                 shotTimer.stop();
-                z = 0.1; // Topun yerin dibine girmesini engelle
+                z = 0.1; 
             }
+
+            // 2. DÜZELTİLEN KISIM: Veriyi dizi (array) içine alıp gönderiyoruz
             Pose3d simulatedBallPose = new Pose3d(x, y, z, new Rotation3d());
-            
-            // Loglamak (SmartDashboard veya AdvantageKit Logger ile)
-          SmartDashboard.putNumberArray("SimulatedBall", new double[] {
-              simulatedBallPose.getX(),
-              simulatedBallPose.getY(),
-              simulatedBallPose.getZ(),
-              simulatedBallPose.getRotation().getQuaternion().getW(),
-              simulatedBallPose.getRotation().getQuaternion().getX(),
-              simulatedBallPose.getRotation().getQuaternion().getY(),
-              simulatedBallPose.getRotation().getQuaternion().getZ()
-            });
+            ballPublisher.set(new Pose3d[] { simulatedBallPose });
+
         } else {
-            // Eğer top havada değilse, belki de topu robotun içinde göstermek istersin
-            // Veya tamamen ekrandan kaybetmek için boş bir array gönderebilirsin.
-            SmartDashboard.putNumberArray("SimulatedBall", new double[] {
-                0.0, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0
-            }); 
+            // 3. DÜZELTİLEN KISIM: Top havada değilken sahanın altına (yine dizi olarak) sakla
+            ballPublisher.set(new Pose3d[] { new Pose3d(0.0, 0.0, -5.0, new Rotation3d()) });
         }
-}
+    }
 }

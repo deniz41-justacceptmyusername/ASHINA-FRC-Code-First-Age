@@ -63,7 +63,7 @@ public class RobotContainer {
             .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
             .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
     );
-  }
+  
 
     // BS ile AS rotası arasındaki 5 saniyelik atış komutu:
     NamedCommands.registerCommand("shooter komutu", 
