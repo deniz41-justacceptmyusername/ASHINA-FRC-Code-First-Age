@@ -43,7 +43,7 @@ public class RobotContainer {
 
     // 👇 EKLENEN RB (Right Bumper) TUŞ ATAMASI 👇
     // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
-    m_driverController.rightBumper().whileTrue(
+    m_driverController.leftBumper().whileTrue(
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
@@ -59,8 +59,8 @@ public class RobotContainer {
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
 
-    m_driverController.rightTrigger().whileTrue(
-      new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
+    m_driverController.rightbumper().whileTrue(
+      new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter)
     );
   }
 
