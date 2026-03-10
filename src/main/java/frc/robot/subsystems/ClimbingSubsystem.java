@@ -12,6 +12,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 public class ClimbingSubsystem extends SubsystemBase{
     private final SparkMax m_climberRight = new SparkMax(61, MotorType.kBrushless);
     private final SparkMax m_climberLeft = new SparkMax(62, MotorType.kBrushless);
+    
 
     public ClimbingSubsystem() {
 

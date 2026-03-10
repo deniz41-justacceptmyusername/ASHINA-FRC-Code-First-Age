@@ -52,7 +52,7 @@ public class RobotContainer {
     );
 
     // 2. YENİ KOMUT: Sadece içeri alma tekerleklerini döndürür
-    NamedCommands.registerCommand("intage begin", 
+    NamedCommands.registerCommand("intake begin", 
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
             .withTimeout(4.0) // 4 saniye boyunca tekerlekler döner
             .andThen(() -> m_intake.frontstop(), m_intake) // Sonra tekerlekleri durdurur
