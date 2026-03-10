@@ -59,7 +59,7 @@ public class RobotContainer {
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
 
-    m_driverController.rightbumper().whileTrue(
+    m_driverController.rightBumper().whileTrue(
       new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter)
     );
   }

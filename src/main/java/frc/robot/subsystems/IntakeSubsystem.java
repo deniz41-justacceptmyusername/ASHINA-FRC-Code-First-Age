@@ -14,10 +14,12 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
+import edu.wpi.first.wpilibj.motorcontrol.PWMTalonFX;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeSubsystem extends SubsystemBase {
   // Motorları Right ve Left olarak bağımsız tanımladık
-  private final TalonFX m_intakefront = new TalonFX(51, IntakeConstants.kCANBus);
+  private final PWMTalonFX m_intakefront = new PWMTalonFX(0);
   private final TalonFX m_intakeback = new TalonFX(52, IntakeConstants.kCANBus);
   public int intakestat=1;
   // Shooter motorların duruyor
@@ -43,8 +45,8 @@ talonFXConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
   // İki motoru aynı anda ve aynı hızda çalıştıran metot
   public void setIntakeSpeed(double speed) {
       if(intakestat==0){
-        m_intakefront.setControl(m_request.withOutput(speed));}
-      else m_intakefront.setControl(m_request.withOutput(0));
+        m_intakefront.set(speed);}
+      else m_intakefront.set(0);
         //m_intakeLeft.setControl(m_request.withOutput(speed));
     }
     public void getdown() {
