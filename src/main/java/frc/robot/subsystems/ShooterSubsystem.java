@@ -11,21 +11,21 @@ import frc.robot.Constants.ShooterConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-private final TalonFX m_shooterRight = new TalonFX(71, ShooterConstants.kCANBus);
-private final TalonFX m_shooterLeft = new TalonFX(72, ShooterConstants.kCANBus);
+private final TalonFX m_shooterRight = new TalonFX(62, ShooterConstants.kCANBus);
+private final TalonFX m_shooterLeft = new TalonFX(61, ShooterConstants.kCANBus);
 
 private final DutyCycleOut m_request = new DutyCycleOut(0.0);
 
 public ShooterSubsystem() {
     var currentConfigs = new MotorOutputConfigs();
- currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
+ currentConfigs.Inverted = InvertedValue.Clockwise_Positive;
         m_shooterLeft.getConfigurator().apply(currentConfigs);
         m_shooterRight.getConfigurator().apply(currentConfigs);
 }
 
 public void setShooterSpeed(double speed) {
-        m_shooterRight.setControl(m_request.withOutput(speed));
-        m_shooterLeft.setControl(m_request.withOutput(speed));
+        m_shooterRight.setControl(m_request.withOutput(0.3));
+        m_shooterLeft.setControl(m_request.withOutput(-0.3));
 }
 public void stop() {
         m_shooterRight.stopMotor();
