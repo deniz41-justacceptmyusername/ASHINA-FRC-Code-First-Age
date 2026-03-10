@@ -60,9 +60,13 @@ public class RobotContainer {
     );
 
     m_driverController.rightBumper().whileTrue(
+<<<<<<< HEAD
       new RunCommand(() -> m_shooter.setShooterSpeed(-0.3), m_shooter)
     ).onFalse(
         new InstantCommand(() -> m_shooter.stop(), m_shooter)
+=======
+      new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter)
+>>>>>>> c4afac27cde3d86d702d91064d8b11295a4dd75a
     );
   }
 
