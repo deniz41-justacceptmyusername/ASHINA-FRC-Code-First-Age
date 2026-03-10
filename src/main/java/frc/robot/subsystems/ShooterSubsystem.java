@@ -45,8 +45,8 @@ public ShooterSubsystem() {
 
 
 public void setShooterSpeed(double speed) {
-        m_shooterRight.setControl(m_request.withOutput(0.3));
-        m_shooterLeft.setControl(m_request.withOutput(-0.3));
+        m_shooterRight.setControl(m_request.withOutput(0.9));
+        m_shooterLeft.setControl(m_request.withOutput(-0.9));
 }
 public void stop() {
         m_shooterRight.stopMotor();
