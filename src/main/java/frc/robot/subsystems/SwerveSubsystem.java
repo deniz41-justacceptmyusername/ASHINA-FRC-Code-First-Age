@@ -12,19 +12,25 @@ import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 import swervelib.SwerveDrive;
-import swervelib.math.SwerveMath;
+import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import org.photonvision.EstimatedRobotPose;
+import edu.wpi.first.math.geometry.Pose3d;
+import java.util.Optional;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+
 
 public class SwerveSubsystem extends SubsystemBase {
   private final File directory = new File(Filesystem.getDeployDirectory(), "swerve");
   private final SwerveDrive swerveDrive;
   private final Field2d m_field = new Field2d();
-  
+  private VisionSubsystem vision;
 
+  
   public SwerveSubsystem() {
+
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
 
     try {
@@ -76,6 +82,19 @@ public class SwerveSubsystem extends SubsystemBase {
     // Telemetry ve Dashboard güncellemeleri
     SwerveDriveTelemetry.updateData();
     SmartDashboard.putData("Field", m_field);
+
+    Pose2d location = getPose();
+    SmartDashboard.putNumber("Robot X (Metre)", location.getX());
+    SmartDashboard.putNumber("Robot Y (Metre)", location.getY());
+    SmartDashboard.putNumber("Robot Acisi (Derece)", location.getRotation().getDegrees());
+  }
+
+  public void updateOdometryWithVision(EstimatedRobotPose estPose) {
+    
+    Pose2d visionPose2d = estPose.estimatedPose.toPose2d();
+    double timestamp = estPose.timestampSeconds;
+
+    swerveDrive.addVisionMeasurement(visionPose2d, timestamp);
   }
 public Pose2d getPose() {
     return swerveDrive.getPose();
