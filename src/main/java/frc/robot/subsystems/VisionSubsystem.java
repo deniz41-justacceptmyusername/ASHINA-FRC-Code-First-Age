@@ -29,7 +29,7 @@ public class VisionSubsystem {
         }
 
         Transform3d robotToCam = new Transform3d(
-                new Translation3d(0.2, 0.0, 0.15), 
+                new Translation3d(0.2, 0.0, 0.1), 
                 new Rotation3d(0, 0, 0)
         );
 

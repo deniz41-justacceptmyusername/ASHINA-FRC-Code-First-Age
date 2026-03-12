@@ -67,13 +67,6 @@ private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
             .andThen(() -> m_intake.frontstop(), m_intake) // Sonra tekerlekleri durdurur
     );
 
-    // 3. 5 saniyelik atış komutu
-    NamedCommands.registerCommand("shooter komutu", 
-        new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
-            .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
-            .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
-    );
-  
 
     // BS ile AS rotası arasındaki 5 saniyelik atış komutu:
     NamedCommands.registerCommand("shooter komutu", 
@@ -88,9 +81,10 @@ private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
 
     m_driverController.rightBumper().whileTrue(
-        new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
+      new RunCommand(() -> m_shooter.setShooterSpeed(0.7), m_shooter)
+
     ).onFalse(
-        new InstantCommand(() -> m_intake.frontstop(), m_intake)
+      new InstantCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
     );
     m_driverController.pov(0).whileTrue(
       new RunCommand(() -> m_intake.getup(), m_intake)
@@ -102,19 +96,12 @@ private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
     ).onFalse(
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
-
-    m_driverController.rightTrigger().whileTrue(
-     new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
-
-    ).onFalse(
-      new InstantCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
-    );
     m_driverController.leftBumper().whileTrue(
-      new InstantCommand(() -> {
-       Pose2d currentPose = drivebase.getPose();
-
-      }, m_shooter)
+       new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
+    ).onFalse(
+        new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );
+    
     m_driverController.a().whileTrue(
           new RunCommand(() -> {
               // 27 Numaralı Tag'in sahadaki konumunu çek
