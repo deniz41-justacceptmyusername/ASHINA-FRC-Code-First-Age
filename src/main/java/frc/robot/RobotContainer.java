@@ -102,36 +102,34 @@ private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );
     
-    m_driverController.a().whileTrue(
+m_driverController.a().whileTrue(
           new RunCommand(() -> {
-              // 27 Numaralı Tag'in sahadaki konumunu çek
-              Optional<Pose3d> tagPose = visionSubsystem.getTagPose(27);
+              // 1. Doğrudan kameradan 27 Numaralı Tag'in sapma açısını (Yaw) al
+              Optional<Double> tagYaw = visionSubsystem.getTargetYaw(27);
               
-              if (tagPose.isPresent()) {
-                  Pose2d robotPose = drivebase.getPose();
-                  Pose2d targetPose = tagPose.get().toPose2d();
+              if (tagYaw.isPresent()) {
+                  // PhotonVision Yaw değerini derece olarak verir, PID'miz için radyana çeviriyoruz.
+                  double yawErrorRadians = Math.toRadians(tagYaw.get());
                   
-                  // Robot ile Tag arasındaki açıyı hesapla
-                  Rotation2d targetAngle = new Rotation2d(
-                      targetPose.getX() - robotPose.getX(), 
-                      targetPose.getY() - robotPose.getY()
-                  );
+                  // 2. PID Kontrolcüsü: Mevcut sapmayı (yawError) 0'a getirmeye çalış
+                  double rotationSpeed = aimPID.calculate(yawErrorRadians, 0);
                   
-                  // Hedef açıya gitmek için gereken dönüş hızını PID ile hesapla
-                  double rotationSpeed = aimPID.calculate(
-                      robotPose.getRotation().getRadians(), 
-                      targetAngle.getRadians()
-                  );
-                  
-                  // Robotun X ve Y eksenindeki ilerlemesini durdur (Translation2d(0,0))
-                  // Sadece kendi ekseni etrafında hedef açıya dönmesini sağla
+                  // DİKKAT: Kamera arkaya baktığı için dönüş yönü ters gelebilir. 
+                  // Eğer robot hedeften uzağa kaçıyorsa (ters dönüyorsa) bu eksiyi kaldır:
+                  rotationSpeed = -rotationSpeed; 
+
+                  // GÜVENLİK LİMİTİ: Motorlara aniden çok yüksek hız gitmesini engelle (Maksimum 2 rad/s)
+                  rotationSpeed = Math.max(-2.0, Math.min(2.0, rotationSpeed));
+
+                  // 3. Swerve'e sadece dönme emri ver (İlerleme: 0, 0)
                   drivebase.getSwerveDrive().drive(new Translation2d(0, 0), rotationSpeed, true, false);
               } else {
-                  // Eğer Tag haritada yoksa motorları durdur (güvenlik önlemi)
+                  // Eğer kamera 27 numarayı görmüyorsa motorları durdur
                   drivebase.getSwerveDrive().drive(new Translation2d(0, 0), 0, true, false);
               }
           }, drivebase)
       );
+                
     }
   
 

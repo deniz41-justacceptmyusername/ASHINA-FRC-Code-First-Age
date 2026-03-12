@@ -17,9 +17,24 @@ public class VisionSubsystem {
     private final PhotonCamera camera;
     private final PhotonPoseEstimator poseEstimator;
     private final AprilTagFieldLayout fieldLayout; // SINIF SEVİYESİNE TAŞINDI
-
+// YENİ EKLENEN: İstenilen Tag ID'sini kamerada arar ve merkezden ne kadar sapmış (Yaw) onu verir.
+    public Optional<Double> getTargetYaw(int targetId) {
+        PhotonPipelineResult result = camera.getLatestResult();
+        
+        // Eğer kamera bir şeyler görüyorsa
+        if (result.hasTargets()) {
+            // Gördüğü tüm hedefleri tara
+            for (var target : result.getTargets()) {
+                // Eğer gördüğü hedef aradığımız ID ise (Örn: 27)
+                if (target.getFiducialId() == targetId) {
+                    return Optional.of(target.getYaw()); // Sapma açısını derece cinsinden döndür
+                }
+            }
+        }
+        return Optional.empty(); // Göremiyorsa boş döndür
+    }
     public VisionSubsystem() {
-        camera = new PhotonCamera("MainCam");
+        camera = new PhotonCamera("ashina_Port_1182_Output_MJPEG_Server");
 
         // O yılın resmi saha dizilimini yükle
         try {
@@ -28,9 +43,16 @@ public class VisionSubsystem {
             throw new RuntimeException("AprilTag haritası yüklenemedi!", e);
         }
 
+// DİKKAT: Eğer kamera robotun merkezine göre arka tarafa monte edildiyse, 
+        // Translation3d içindeki X değerini de eksi yapmalısın (Örn: -0.2).
+        // Eğer fiziksel olarak önde ama arkaya bakıyorsa 0.2 olarak kalabilir.
         Transform3d robotToCam = new Transform3d(
-                new Translation3d(0.2, 0.0, 0.1), 
-                new Rotation3d(0, 0, 0)
+                new Translation3d(-0.2, 0.0, 0.1), // Kameranın merkezden konumu (X, Y, Z)
+                new Rotation3d(
+                        0,                       // Roll (X Ekseni): Kamera dik duruyor
+                        Math.toRadians(-15),     // Pitch (Y Ekseni): 15 derece yukarı bakıyor
+                        Math.toRadians(180)      // Yaw (Z Ekseni): 180 derece arkaya bakıyor
+                )
         );
 
         poseEstimator = new PhotonPoseEstimator(
