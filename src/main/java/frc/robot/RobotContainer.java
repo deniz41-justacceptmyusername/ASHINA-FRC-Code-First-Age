@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand; // RunCommand Import edildi
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.ClimbingSubsystem;
 import frc.robot.subsystems.IntakeSubsystem; // IntakeSubsystem import edildi
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -15,6 +16,7 @@ public class RobotContainer {
     private final SwerveSubsystem drivebase = new SwerveSubsystem();
     private final IntakeSubsystem m_intake = new IntakeSubsystem(); // Intake buraya bağlandı
     private final ShooterSubsystem m_shooter = new ShooterSubsystem();
+    private final ClimbingSubsystem m_Climber = new ClimbingSubsystem();
   
     // Xbox Kontrolcüsü (Port 0)
     private final CommandXboxController m_driverController =
@@ -47,6 +49,11 @@ public class RobotContainer {
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.7), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
+    );
+    m_driverController.x().whileTrue(
+      new RunCommand(() -> m_Climber.RunClimber(0.5),m_Climber)
+    ).onFalse(
+      new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
     );
     m_driverController.pov(0).whileTrue(
       new RunCommand(() -> m_intake.getup(), m_intake)
