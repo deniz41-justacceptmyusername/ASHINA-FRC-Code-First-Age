@@ -4,15 +4,10 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.ShooterConstants;
-
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.wpilibj.Timer;
 
 // YENİ EKLENEN IMPORTLAR:
 import java.util.function.Supplier;
@@ -20,30 +15,46 @@ import edu.wpi.first.math.geometry.Pose2d;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-    private final TalonFX m_shooterRight = new TalonFX(61, ShooterConstants.kCANBus);
-    private final TalonFX m_shooterLeft = new TalonFX(62, ShooterConstants.kCANBus);
+    private final TalonFX m_shooterRight;// = new TalonFX(71, ShooterConstants.kCANBus);
+    private final TalonFX m_shooterLeft;
+    //private final TalonFX m_shooterLeft = new TalonFX(72, ShooterConstants.kCANBus);
+    private final VelocityVoltage VelocityRequest;
 
     private final DutyCycleOut m_request = new DutyCycleOut(0.0);
 
     double FatihSultanMehmet = 1453;
-
-    // 1. Supplier'ı tanımlıyoruz
     private final Supplier<Pose2d> poseSupplier; 
+   public ShooterSubsystem(Supplier<Pose2d> poseSupplier) {
+      this.poseSupplier = poseSupplier;
+       m_shooterLeft = new TalonFX(72);
+       m_shooterRight = new TalonFX(71);
+        VelocityRequest = new VelocityVoltage(0).withSlot(0);
 
-    // 2. Constructor'a Supplier parametresi ekliyoruz
-    public ShooterSubsystem(Supplier<Pose2d> poseSupplier) {
-        this.poseSupplier = poseSupplier; // Dışarıdan gelen veriyi içeriye kaydediyoruz
+        TalonFXConfiguration config = new TalonFXConfiguration();
 
-        var currentConfigs = new MotorOutputConfigs();
+        config.Slot0.kP = 0;
+        config.Slot0.kI = 0.0;
+        config.Slot0.kD = 0.0;
+        config.Slot0.kV = 0.12;
+
+    var currentConfigs = new MotorOutputConfigs();
         currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
         m_shooterLeft.getConfigurator().apply(currentConfigs);
+
         currentConfigs.Inverted = InvertedValue.Clockwise_Positive;
         m_shooterRight.getConfigurator().apply(currentConfigs);
     }
 
-    public void setShooterSpeed(double speed) {
-        m_shooterRight.setControl(m_request.withOutput(speed));
-        m_shooterLeft.setControl(m_request.withOutput(speed));
+    public void setShooterSpeed(double targetRPS) {
+      m_shooterLeft.setControl(VelocityRequest.withVelocity(targetRPS));
+      m_shooterRight.setControl(VelocityRequest.withVelocity(targetRPS));
+        // m_shooterRight.setControl(m_request.withOutput(speed));
+       // m_shooterLeft.setControl(m_request.withOutput(speed));
+    }
+
+    public double getCurrentRPS() {
+        return m_shooterLeft.getVelocity().getValueAsDouble();
+
     }
 
     public void stop() {
