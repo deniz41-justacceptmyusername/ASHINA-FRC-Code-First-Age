@@ -11,13 +11,18 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import swervelib.SwerveInputStream;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto; 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import frc.robot.subsystems.VisionSubsystem;
 
 public class RobotContainer {  
-    // Subsystem tanımları
-    private final SwerveSubsystem drivebase = new SwerveSubsystem();
+    // Subsystem tanımları// 1. ÖNCE VisionSubsystem'ı oluştur (Swerve'den önce yazılması çok hayati!)
+public final VisionSubsystem visionSubsystem = new VisionSubsystem();
+
+// 2. SONRA SwerveSubsystem'ı oluştur ve oluşturduğumuz vision objesini içine yolla
+public final SwerveSubsystem drivebase = new SwerveSubsystem(visionSubsystem);
     private final IntakeSubsystem m_intake = new IntakeSubsystem();
     private final ShooterSubsystem m_shooter = new ShooterSubsystem();
+    private final VisionSubsystem m_camera = new VisionSubsystem();
   
     // Xbox Kontrolcüsü (Port 0)
     private final CommandXboxController m_driverController =
@@ -42,7 +47,7 @@ public class RobotContainer {
       drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
     }
 
- private void registerPathPlannerCommands() {
+  private void registerPathPlannerCommands() {
     // 1. Sadece mekanizmayı indiren komut (Eski haline döndü)
     NamedCommands.registerCommand("intake opening", 
         new RunCommand(() -> m_intake.getdown(), m_intake)
@@ -60,6 +65,14 @@ public class RobotContainer {
     // 3. 5 saniyelik atış komutu
     NamedCommands.registerCommand("shooter komutu", 
         new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
+            .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
+            .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
+    );
+  
+
+    // BS ile AS rotası arasındaki 5 saniyelik atış komutu:
+    NamedCommands.registerCommand("shooter komutu", 
+        new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
             .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
             .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
     );
@@ -92,11 +105,6 @@ public class RobotContainer {
       new InstantCommand(() -> {
        Pose2d currentPose = drivebase.getPose();
 
-        m_shooter.shootBall(
-          currentPose.getX(),
-         currentPose.getY(),
-          currentPose.getRotation().getRadians()
-        );
       }, m_shooter)
     );
   }

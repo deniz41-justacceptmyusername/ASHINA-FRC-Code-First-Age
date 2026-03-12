@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import java.io.File;
+import java.util.Optional;
 import java.util.function.Supplier;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -12,25 +13,23 @@ import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 import swervelib.SwerveDrive;
-import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.geometry.Rotation2d;
-import org.photonvision.EstimatedRobotPose;
-import edu.wpi.first.math.geometry.Pose3d;
-import java.util.Optional;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-
+import org.photonvision.EstimatedRobotPose; // Vizyon için eklendi
 
 public class SwerveSubsystem extends SubsystemBase {
   private final File directory = new File(Filesystem.getDeployDirectory(), "swerve");
   private final SwerveDrive swerveDrive;
   private final Field2d m_field = new Field2d();
-  private VisionSubsystem vision;
-
   
-  public SwerveSubsystem() {
+  // Vizyon sistemini tutacağımız değişken
+  private final VisionSubsystem vision; 
 
+  // CONSTRUCTOR GÜNCELLENDİ: Artık VisionSubsystem istiyor
+  public SwerveSubsystem(VisionSubsystem vision) {
+    this.vision = vision; // RobotContainer'dan gelen vizyonu kaydet
+    
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
 
     try {
@@ -59,50 +58,49 @@ public class SwerveSubsystem extends SubsystemBase {
   public void zeroGyro() {
     swerveDrive.zeroGyro();
   }
+  
   public void flipGyro180() {
-    // Robotun anlık pozisyonunu ve açısını alıyoruz
     Pose2d currentPose = swerveDrive.getPose(); 
-    
-    // Mevcut açıya 180 derece (Math.PI radyan) ekliyoruz
     Rotation2d invertedRotation = currentPose.getRotation().plus(Rotation2d.fromDegrees(180));
-    
-    // Konumu aynı bırakıp, açıyı tersine çevrilmiş haliyle güncelliyoruz
     swerveDrive.resetOdometry(new Pose2d(currentPose.getTranslation(), invertedRotation));
-}
+  }
   
   public void robotPeriodic() {
     SwerveDriveTelemetry.updateData();
   }
-@Override
+
+  @Override
   public void periodic() {
-    // Odometry güncellemesi
+    // 1. YAGSL'ın kendi tekerlek/gyro odometrisini güncelle
     swerveDrive.updateOdometry();
+
+    // 2. VİZYON GÜNCELLEMESİ (YENİ EKLENEN KISIM)
+    if (vision != null) {
+        Optional<EstimatedRobotPose> visionPose = vision.getEstimatedGlobalPose();
+        
+        // Sadece kamera bir etiket görüyorsa güncelle!
+        if (visionPose.isPresent()) {
+            Pose2d camPose2d = visionPose.get().estimatedPose.toPose2d();
+            double timestamp = visionPose.get().timestampSeconds;
+            
+            // YAGSL'ın GİZLİ SİLAHI: Kendi pose estimator'ına vizyonu doğrudan besliyoruz
+            swerveDrive.addVisionMeasurement(camPose2d, timestamp);
+        }
+    }
+    
+    // 3. Haritayı güncellenmiş (tekerlek + kamera) kusursuz konumla besle
     m_field.setRobotPose(swerveDrive.getPose());
     
     // Telemetry ve Dashboard güncellemeleri
     SwerveDriveTelemetry.updateData();
     SmartDashboard.putData("Field", m_field);
-
-    Pose2d location = getPose();
-    SmartDashboard.putNumber("Robot X (Metre)", location.getX());
-    SmartDashboard.putNumber("Robot Y (Metre)", location.getY());
-    SmartDashboard.putNumber("Robot Acisi (Derece)", location.getRotation().getDegrees());
   }
 
-  public void updateOdometryWithVision(EstimatedRobotPose estPose) {
-    
-    Pose2d visionPose2d = estPose.estimatedPose.toPose2d();
-    double timestamp = estPose.timestampSeconds;
-
-    swerveDrive.addVisionMeasurement(visionPose2d, timestamp);
-  }
-public Pose2d getPose() {
+  public Pose2d getPose() {
     return swerveDrive.getPose();
-}
- //Robotun konumunu manuel ayarlamak için
-  public void resetOdometry(edu.wpi.first.math.geometry.Pose2d pose) {
+  }
+
+  public void resetOdometry(Pose2d pose) {
     swerveDrive.resetOdometry(pose);
   }
-   //robotPeriodic() ve subsystemPeriodic() metodlarını silebilirsin.
-  
 }

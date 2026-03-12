@@ -19,14 +19,14 @@ public class VisionSubsystem {
 
     public VisionSubsystem() {
          // PhotonVision arayüzünde verdiğin kamera adını gir
-        camera = new PhotonCamera("Camera_Module_v3");
+        camera = new PhotonCamera("MainCam");
 
         // O yılın resmi saha dizilimini yükle
         AprilTagFieldLayout fieldLayout = AprilTagFields.k2026RebuiltAndymark.loadAprilTagLayoutField();
 
         // Kameranın robot merkezine göre konumunu tanımla (Örnek: 20cm önde, 15cm yukarıda, açısız)
         Transform3d robotToCam = new Transform3d(
-                new Translation3d(0.2, 0.0, 0.07), 
+                new Translation3d(0.2, 0.0, 0.15), 
                 new Rotation3d(0, 0, 0)
         );
 
