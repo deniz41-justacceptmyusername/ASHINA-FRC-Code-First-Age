@@ -13,15 +13,20 @@ import swervelib.SwerveInputStream;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import frc.robot.subsystems.VisionSubsystem;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import java.util.Optional;
 
 public class RobotContainer {  
     // Subsystem tanımları// 1. ÖNCE VisionSubsystem'ı oluştur (Swerve'den önce yazılması çok hayati!)
 public final VisionSubsystem visionSubsystem = new VisionSubsystem();
-
+private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
 // 2. SONRA SwerveSubsystem'ı oluştur ve oluşturduğumuz vision objesini içine yolla
-public final SwerveSubsystem drivebase = new SwerveSubsystem(visionSubsystem);
+    public final SwerveSubsystem drivebase = new SwerveSubsystem(visionSubsystem);
     private final IntakeSubsystem m_intake = new IntakeSubsystem();
-    private final ShooterSubsystem m_shooter = new ShooterSubsystem();
+    private final ShooterSubsystem m_shooter = new ShooterSubsystem(drivebase::getPose);
     private final VisionSubsystem m_camera = new VisionSubsystem();
   
     // Xbox Kontrolcüsü (Port 0)
@@ -31,7 +36,7 @@ public final SwerveSubsystem drivebase = new SwerveSubsystem(visionSubsystem);
     public RobotContainer() {
       // 1. PathPlanner komutlarımızı her şeyden önce kaydediyoruz!
       registerPathPlannerCommands();
-
+      aimPID.enableContinuousInput(-Math.PI, Math.PI);
       configureBindings();
   
       // Sürüş Giriş Akışı (Input Stream) Yapılandırması
@@ -99,7 +104,10 @@ public final SwerveSubsystem drivebase = new SwerveSubsystem(visionSubsystem);
     );
 
     m_driverController.rightTrigger().whileTrue(
-      new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
+     new RunCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
+
+    ).onFalse(
+      new InstantCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
     );
     m_driverController.leftBumper().whileTrue(
       new InstantCommand(() -> {
@@ -107,7 +115,38 @@ public final SwerveSubsystem drivebase = new SwerveSubsystem(visionSubsystem);
 
       }, m_shooter)
     );
-  }
+    m_driverController.a().whileTrue(
+          new RunCommand(() -> {
+              // 27 Numaralı Tag'in sahadaki konumunu çek
+              Optional<Pose3d> tagPose = visionSubsystem.getTagPose(27);
+              
+              if (tagPose.isPresent()) {
+                  Pose2d robotPose = drivebase.getPose();
+                  Pose2d targetPose = tagPose.get().toPose2d();
+                  
+                  // Robot ile Tag arasındaki açıyı hesapla
+                  Rotation2d targetAngle = new Rotation2d(
+                      targetPose.getX() - robotPose.getX(), 
+                      targetPose.getY() - robotPose.getY()
+                  );
+                  
+                  // Hedef açıya gitmek için gereken dönüş hızını PID ile hesapla
+                  double rotationSpeed = aimPID.calculate(
+                      robotPose.getRotation().getRadians(), 
+                      targetAngle.getRadians()
+                  );
+                  
+                  // Robotun X ve Y eksenindeki ilerlemesini durdur (Translation2d(0,0))
+                  // Sadece kendi ekseni etrafında hedef açıya dönmesini sağla
+                  drivebase.getSwerveDrive().drive(new Translation2d(0, 0), rotationSpeed, true, false);
+              } else {
+                  // Eğer Tag haritada yoksa motorları durdur (güvenlik önlemi)
+                  drivebase.getSwerveDrive().drive(new Translation2d(0, 0), 0, true, false);
+              }
+          }, drivebase)
+      );
+    }
+  
 
   public Command getAutonomousCommand() {
     // PathPlanner "Autos" sekmesinde oluşturduğun otonom dosyasının ismini buraya yazacaksın

@@ -11,22 +11,34 @@ import frc.robot.Constants.ShooterConstants;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher; // ARRAY OLARAK DEĞİŞTİ
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.Timer;
+
+// YENİ EKLENEN IMPORTLAR:
+import java.util.function.Supplier;
+import edu.wpi.first.math.geometry.Pose2d;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-    private final TalonFX m_shooterRight = new TalonFX(71, ShooterConstants.kCANBus);
-    private final TalonFX m_shooterLeft = new TalonFX(72, ShooterConstants.kCANBus);
+    private final TalonFX m_shooterRight = new TalonFX(61, ShooterConstants.kCANBus);
+    private final TalonFX m_shooterLeft = new TalonFX(62, ShooterConstants.kCANBus);
 
     private final DutyCycleOut m_request = new DutyCycleOut(0.0);
 
     double FatihSultanMehmet = 1453;
 
-    public ShooterSubsystem() {
+    // 1. Supplier'ı tanımlıyoruz
+    private final Supplier<Pose2d> poseSupplier; 
+
+    // 2. Constructor'a Supplier parametresi ekliyoruz
+    public ShooterSubsystem(Supplier<Pose2d> poseSupplier) {
+        this.poseSupplier = poseSupplier; // Dışarıdan gelen veriyi içeriye kaydediyoruz
+
         var currentConfigs = new MotorOutputConfigs();
         currentConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
         m_shooterLeft.getConfigurator().apply(currentConfigs);
+        currentConfigs.Inverted = InvertedValue.Clockwise_Positive;
+        m_shooterRight.getConfigurator().apply(currentConfigs);
     }
 
     public void setShooterSpeed(double speed) {
@@ -37,5 +49,19 @@ public class ShooterSubsystem extends SubsystemBase {
     public void stop() {
         m_shooterRight.stopMotor();
         m_shooterLeft.stopMotor();
+    }
+
+    // 3. X ve Y koordinatlarını istediğin zaman kullanabileceğin bir metod (veya periodic içine yazabilirsin)
+    @Override
+    public void periodic() {
+        // Anlık pozisyonu al
+        Pose2d currentPose = poseSupplier.get(); 
+        
+        // Koordinatları çek
+        double currentX = currentPose.getX();
+        double currentY = currentPose.getY();
+
+        // ÖRNEK: Bu X ve Y değerlerini burada hesaplamalarında kullanabilirsin.
+        // Mesela hedefe olan uzaklığı hesaplayıp motor hızını dinamik ayarlayabilirsin.
     }
 }
