@@ -55,6 +55,16 @@ public class RobotContainer {
     ).onFalse(
       new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
     );
+    m_driverController.pov(90).whileTrue(
+      new RunCommand(() -> m_Climber.getRight(0.5), m_Climber)
+    ).onFalse(
+      new RunCommand(() -> m_Climber.Climbstop(), m_Climber)
+    );
+    m_driverController.pov(360).whileTrue(
+      new RunCommand(() -> m_Climber.getLeft(0.5), m_Climber)
+    ).onFalse(
+      new InstantCommand(() -> m_Climber.Climbstop(), m_Climber)
+    );
     m_driverController.pov(0).whileTrue(
       new RunCommand(() -> m_intake.getup(), m_intake)
     ).onFalse(
