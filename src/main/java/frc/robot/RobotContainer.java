@@ -76,16 +76,20 @@ public class RobotContainer {
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
 
-    m_driverController.rightBumper().whileTrue(
-      new RunCommand(() -> m_shooter.setShooterSpeed(-0.3), m_shooter)
-    ).onFalse(
-        new InstantCommand(() -> m_shooter.stop(), m_shooter)
-    );
-    m_driverController.b().whileTrue(
+// Right Bumper: Shooter'ı belirlenen RPS hızında çalıştır
+m_driverController.rightBumper().whileTrue(
+    new RunCommand(() -> m_shooter.setShooterVelocity(-25.0), m_shooter)
+).onFalse(
+    // Tuş bırakıldığında motorları tamamen durdur
+    new InstantCommand(() -> m_shooter.stop(), m_shooter)
+);
+
+// B Butonu: Stopper mekanizmasını test et
+m_driverController.b().whileTrue(
     new RunCommand(() -> m_shooter.test(), m_shooter)
-    ).onFalse(
-        new InstantCommand(() -> m_shooter.stoptest(), m_shooter)
-    );
+).onFalse(
+    new InstantCommand(() -> m_shooter.stoptest(), m_shooter)
+);
   }
 
   public Command getAutonomousCommand() {
