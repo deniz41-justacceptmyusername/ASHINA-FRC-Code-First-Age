@@ -5,6 +5,7 @@ import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
+import edu.wpi.first.wpilibj.motorcontrol.PWMTalonFX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
 
@@ -12,7 +13,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
 private final TalonFX m_shooterRight = new TalonFX(62, ShooterConstants.kCANBus);
 private final TalonFX m_shooterLeft = new TalonFX(61, ShooterConstants.kCANBus);
-
+ private final PWMTalonFX shooterstopper = new PWMTalonFX(1);
 private final DutyCycleOut m_request = new DutyCycleOut(0.0);
 
 public ShooterSubsystem() {
@@ -28,6 +29,13 @@ public void stop() {
         m_shooterRight.stopMotor();
         m_shooterLeft.stopMotor();
     }
+    public void test(){
+        shooterstopper.set(0.3);
+    }
+    public void stoptest(){
+        shooterstopper.stopMotor();
+    }
+
 
     @Override
     public void simulationPeriodic() {
