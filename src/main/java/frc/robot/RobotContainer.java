@@ -1,42 +1,30 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand; 
+import edu.wpi.first.wpilibj2.command.RunCommand; // RunCommand Import edildi
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.subsystems.IntakeSubsystem; 
+import frc.robot.subsystems.ClimbingSubsystem;
+import frc.robot.subsystems.IntakeSubsystem; // IntakeSubsystem import edildi
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import swervelib.SwerveInputStream;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import frc.robot.subsystems.VisionSubsystem;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import java.util.Optional;
 
 public class RobotContainer {  
-    // Subsystem tanımları// 1. ÖNCE VisionSubsystem'ı oluştur (Swerve'den önce yazılması çok hayati!)
-public final VisionSubsystem visionSubsystem = new VisionSubsystem();
-private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
-// 2. SONRA SwerveSubsystem'ı oluştur ve oluşturduğumuz vision objesini içine yolla
-    public final SwerveSubsystem drivebase = new SwerveSubsystem(visionSubsystem);
-    private final IntakeSubsystem m_intake = new IntakeSubsystem();
-    private final ShooterSubsystem m_shooter = new ShooterSubsystem(drivebase::getPose);
-    private final VisionSubsystem m_camera = new VisionSubsystem();
+    // Subsystem tanımları
+    private final VisionSubsystem m_vision = new VisionSubsystem();
+    private final SwerveSubsystem drivebase = new SwerveSubsystem(m_vision);
+    private final IntakeSubsystem m_intake = new IntakeSubsystem(); // Intake buraya bağlandı
+    private final ShooterSubsystem m_shooter = new ShooterSubsystem();
+    private final ClimbingSubsystem m_Climber = new ClimbingSubsystem();
   
     // Xbox Kontrolcüsü (Port 0)
     private final CommandXboxController m_driverController =
         new CommandXboxController(OperatorConstants.kDriverControllerPort);
   
     public RobotContainer() {
-      // 1. PathPlanner komutlarımızı her şeyden önce kaydediyoruz!
-      registerPathPlannerCommands();
-      aimPID.enableContinuousInput(-Math.PI, Math.PI);
       configureBindings();
   
       // Sürüş Giriş Akışı (Input Stream) Yapılandırması
@@ -45,46 +33,39 @@ private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
           () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
           .withControllerRotationAxis(() -> m_driverController.getRightX())
           .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.5+m_driverController.getRightTriggerAxis()*0.5) 
+          .scaleTranslation(0.5+m_driverController.getRightTriggerAxis()*0.5) // Hızı %80'e sınırlar, güvenli sürüş sağlar
           .allianceRelativeControl(true);
   
       // Varsayılan komut olarak sürüşü ata
       drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
     }
 
-  private void registerPathPlannerCommands() {
-    // 1. Sadece mekanizmayı indiren komut (Eski haline döndü)
-    NamedCommands.registerCommand("intake opening", 
-        new RunCommand(() -> m_intake.getdown(), m_intake)
-            .withTimeout(1.5) // İnme süresi (ihtiyacına göre değiştir)
-            .andThen(() -> m_intake.backstop(), m_intake)
-    );
-
-    // 2. YENİ KOMUT: Sadece içeri alma tekerleklerini döndürür
-    NamedCommands.registerCommand("intage begin", 
-        new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
-            .withTimeout(4.0) // 4 saniye boyunca tekerlekler döner
-            .andThen(() -> m_intake.frontstop(), m_intake) // Sonra tekerlekleri durdurur
-    );
-
-
-    // BS ile AS rotası arasındaki 5 saniyelik atış komutu:
-    NamedCommands.registerCommand("shooter komutu", 
-        new RunCommand(() -> m_shooter.setShooterSpeed(0.3), m_shooter) // UYARI: Ateş etmek için buradaki 0'ı (örn: 0.8) yapmayı unutma!
-            .withTimeout(5.0) // Tam 5 saniye boyunca bu komutu çalıştırır
-            .andThen(() -> m_shooter.setShooterSpeed(0), m_shooter) // 5 saniye bitince motoru tamamen durdurur
-    );
-  }
-
   private void configureBindings() {
-    m_driverController.start().onTrue(new InstantCommand(drivebase::flipGyro180));
+    // Start butonu veya B butonu Gyro'yu sıfırlar (Robotun baktığı yer ileri olur)
+    m_driverController.start().onTrue(new InstantCommand(drivebase::zeroGyro));
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
 
-    m_driverController.rightBumper().whileTrue(
-      new RunCommand(() -> m_shooter.setShooterSpeed(0.7), m_shooter)
-
+    // 👇 EKLENEN RB (Right Bumper) TUŞ ATAMASI 👇
+    // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
+    m_driverController.leftBumper().whileTrue(
+        new RunCommand(() -> m_intake.setIntakeSpeed(-0.7), m_intake)
     ).onFalse(
-      new InstantCommand(() -> m_shooter.setShooterSpeed(0), m_shooter)
+        new InstantCommand(() -> m_intake.frontstop(), m_intake)
+    );
+    m_driverController.x().whileTrue(
+      new RunCommand(() -> m_Climber.RunClimber(0.5),m_Climber)
+    ).onFalse(
+      new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
+    );
+    m_driverController.pov(90).whileTrue(
+      new RunCommand(() -> m_Climber.getRight(0.5), m_Climber)
+    ).onFalse(
+      new RunCommand(() -> m_Climber.Climbstop(), m_Climber)
+    );
+    m_driverController.pov(360).whileTrue(
+      new RunCommand(() -> m_Climber.getLeft(0.5), m_Climber)
+    ).onFalse(
+      new InstantCommand(() -> m_Climber.Climbstop(), m_Climber)
     );
     m_driverController.pov(0).whileTrue(
       new RunCommand(() -> m_intake.getup(), m_intake)
@@ -96,53 +77,30 @@ private final PIDController aimPID = new PIDController(3.0, 0.0, 0.0);
     ).onFalse(
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
-    m_driverController.leftBumper().whileTrue(
-       new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
+    m_driverController.rightBumper().whileTrue(
+      new RunCommand(() -> m_shooter.setShooterSpeed(-0.3), m_shooter)
     ).onFalse(
-        new InstantCommand(() -> m_intake.frontstop(), m_intake)
+        new InstantCommand(() -> m_shooter.stop(), m_shooter)
     );
-    
-m_driverController.a().whileTrue(
-          new RunCommand(() -> {
-              // 1. Doğrudan kameradan 27 Numaralı Tag'in sapma açısını (Yaw) al
-              Optional<Double> tagYaw = visionSubsystem.getTargetYaw(27);
-              
-              if (tagYaw.isPresent()) {
-                  // PhotonVision Yaw değerini derece olarak verir, PID'miz için radyana çeviriyoruz.
-                  double yawErrorRadians = Math.toRadians(tagYaw.get());
-                  
-                  // 2. PID Kontrolcüsü: Mevcut sapmayı (yawError) 0'a getirmeye çalış
-                  double rotationSpeed = aimPID.calculate(yawErrorRadians, 0);
-                  
-                  // DİKKAT: Kamera arkaya baktığı için dönüş yönü ters gelebilir. 
-                  // Eğer robot hedeften uzağa kaçıyorsa (ters dönüyorsa) bu eksiyi kaldır:
-                  rotationSpeed = -rotationSpeed; 
-
-                  // GÜVENLİK LİMİTİ: Motorlara aniden çok yüksek hız gitmesini engelle (Maksimum 2 rad/s)
-                  rotationSpeed = Math.max(-2.0, Math.min(2.0, rotationSpeed));
-
-                  // 3. Swerve'e sadece dönme emri ver (İlerleme: 0, 0)
-                  drivebase.getSwerveDrive().drive(new Translation2d(0, 0), rotationSpeed, true, false);
-              } else {
-                  // Eğer kamera 27 numarayı görmüyorsa motorları durdur
-                  drivebase.getSwerveDrive().drive(new Translation2d(0, 0), 0, true, false);
-              }
-          }, drivebase)
-      );
-                
-    }
-  
+    m_driverController.y().whileTrue(
+      new RunCommand(() -> m_shooter.setsecondshooter(0.3), m_shooter)
+    ).onFalse(
+        new InstantCommand(() -> m_shooter.stop(), m_shooter)
+    );
+    m_driverController.a().whileTrue(
+      new RunCommand(() -> m_shooter.setsecondshooter(-0.3), m_shooter)
+    ).onFalse(
+        new InstantCommand(() -> m_shooter.stop(), m_shooter)
+    );
+  }
 
   public Command getAutonomousCommand() {
-    // PathPlanner "Autos" sekmesinde oluşturduğun otonom dosyasının ismini buraya yazacaksın
-    // Örneğin Auto dosyanın adı "AnaOtonom" ise:
-    return new PathPlannerAuto("Auto command"); 
+    // Otonom komutu buraya gelecek
+    return null; 
   }
 
   // Robot.java'nın drivebase'e ulaşabilmesi için bir köprü görevi görüyor.
   public SwerveSubsystem getDrivebase() {
     return drivebase;
   }
-  
-  }
-
+}
