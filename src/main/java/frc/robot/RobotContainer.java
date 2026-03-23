@@ -85,7 +85,7 @@ m_driverController.rightBumper().whileTrue(
 );
 
 // B Butonu: Stopper mekanizmasını test et
-m_driverController.b().whileTrue(
+m_driverController.a().whileTrue(
     new RunCommand(() -> m_shooter.test(), m_shooter)
 ).onFalse(
     new InstantCommand(() -> m_shooter.stoptest(), m_shooter)
