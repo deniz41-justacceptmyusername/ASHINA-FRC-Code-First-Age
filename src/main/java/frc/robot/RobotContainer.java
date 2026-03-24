@@ -11,6 +11,11 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import swervelib.SwerveInputStream;
 
+// PathPlanner Kütüphaneleri (Otonom için eklendi)
+import com.pathplanner.lib.auto.NamedCommands;
+ 
+import com.pathplanner.lib.commands.PathPlannerAuto;
+
 public class RobotContainer {  
     // Subsystem tanımları
     private final SwerveSubsystem drivebase = new SwerveSubsystem();
@@ -23,6 +28,9 @@ public class RobotContainer {
         new CommandXboxController(OperatorConstants.kDriverControllerPort);
   
     public RobotContainer() {
+      // 1. Otonom komutlarını kaydediyoruz
+      registerPathPlannerCommands();
+
       configureBindings();
   
       // Sürüş Giriş Akışı (Input Stream) Yapılandırması
@@ -37,6 +45,29 @@ public class RobotContainer {
       // Varsayılan komut olarak sürüşü ata
       drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
     }
+
+  private void registerPathPlannerCommands() {
+    // 1. Intake mekanizmasını indiren komut
+    NamedCommands.registerCommand("intake opening", 
+        new RunCommand(() -> m_intake.getdown(), m_intake)
+            .withTimeout(1.5) 
+            .andThen(() -> m_intake.backstop(), m_intake)
+    );
+
+    // 2. Sadece içeri alma tekerleklerini döndürür
+    NamedCommands.registerCommand("intage begin", 
+        new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
+            .withTimeout(4.0) 
+            .andThen(() -> m_intake.frontstop(), m_intake) 
+    );
+
+    // 3. 5 saniyelik atış komutu
+    NamedCommands.registerCommand("shooter komutu", 
+        new RunCommand(() -> m_shooter.setShooterVelocity(-25.0), m_shooter) 
+            .withTimeout(5.0) 
+            .andThen(() -> m_shooter.stop(), m_shooter) 
+    );
+  }
 
   private void configureBindings() {
     // Start butonu veya B butonu Gyro'yu sıfırlar (Robotun baktığı yer ileri olur)
@@ -75,7 +106,7 @@ public class RobotContainer {
     ).onFalse(
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
-
+    
 // Right Bumper: Shooter'ı belirlenen RPS hızında çalıştır
 m_driverController.rightBumper().whileTrue(
     new RunCommand(() -> m_shooter.setShooterVelocity(-25.0), m_shooter)
@@ -84,7 +115,7 @@ m_driverController.rightBumper().whileTrue(
     new InstantCommand(() -> m_shooter.stop(), m_shooter)
 );
 
-// B Butonu: Stopper mekanizmasını test et
+// A Butonu: Stopper mekanizmasını test et
 m_driverController.a().whileTrue(
     new RunCommand(() -> m_shooter.test(), m_shooter)
 ).onFalse(
@@ -93,8 +124,8 @@ m_driverController.a().whileTrue(
   }
 
   public Command getAutonomousCommand() {
-    // Otonom komutu buraya gelecek
-    return null ; 
+    // UYARI: Otonom dosyanın PathPlanner arayüzündeki adının "Auto command" olduğundan emin ol.
+    return new PathPlannerAuto("Auto command"); 
   }
 
   // Robot.java'nın drivebase'e ulaşabilmesi için bir köprü görevi görüyor.
