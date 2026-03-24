@@ -68,7 +68,7 @@ public class RobotContainer {
 
     // 3. 5 saniyelik atış komutu
     NamedCommands.registerCommand("shooter komutu", 
-        new RunCommand(() -> m_shooter.setShooterVelocity(-25.0), m_shooter) 
+        new RunCommand(() -> m_shooter.setShooterVelocity(-63.0), m_shooter) 
             .withTimeout(5.0) 
             .andThen(() -> m_shooter.stop(), m_shooter) 
     );
@@ -81,7 +81,7 @@ public class RobotContainer {
 
     // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
     m_driverController.leftBumper().whileTrue(
-        new RunCommand(() -> m_intake.setIntakeSpeed(-0.45), m_intake)
+        new RunCommand(() -> m_intake.setIntakeSpeed(-0.475), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );/* 
