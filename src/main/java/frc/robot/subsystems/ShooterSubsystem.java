@@ -5,9 +5,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.wpilibj.motorcontrol.PWMTalonFX;
+import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
 
@@ -15,7 +14,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final TalonFX m_shooterRight = new TalonFX(62, ShooterConstants.kCANBus);
     private final TalonFX m_shooterLeft = new TalonFX(61, ShooterConstants.kCANBus);
-    private final PWMTalonFX shooterstopper = new PWMTalonFX(1);
+    private final PWMSparkMax shooterstopper = new PWMSparkMax(1);
     
     // Hız kontrolü için talep objesi (Velocity cinsinden)
     private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0);
@@ -51,21 +50,23 @@ public class ShooterSubsystem extends SubsystemBase {
         m_shooterRight.setControl(m_velocityRequest.withVelocity(rps));
         m_shooterLeft.setControl(m_velocityRequest.withVelocity(rps));
     }
+    @Override
+    public void periodic(){
+        double leftVelocity = m_shooterLeft.getVelocity().getValueAsDouble();
+        double rightVelocity = m_shooterRight.getVelocity().getValueAsDouble();
+        
+        if (leftVelocity >= 0.7 && rightVelocity >= 0.7) {
+            shooterstopper.set(0.3);
+        }
+        else {
+            shooterstopper.stopMotor();
+        }
+
+    }
 
     public void stop() {
         m_shooterRight.stopMotor();
         m_shooterLeft.stopMotor();
-    }
-        public void test(){
-
-        shooterstopper.set(0.3);
-
-    }
-
-    public void stoptest(){
-
-        shooterstopper.stopMotor();
-
     }
 
     @Override
