@@ -24,7 +24,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final SwerveDrive swerveDrive;
 
   public SwerveSubsystem() {
-    SwerveDriveTelemetry.verbosity = TelemetryVerbosity.NONE;
+    SwerveDriveTelemetry.verbosity = TelemetryVerbosity.LOW;
 
     try {
       swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.maxSpeed);

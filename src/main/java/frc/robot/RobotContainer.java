@@ -36,9 +36,7 @@ public class RobotContainer {
   
       // Sürüş Giriş Akışı (Input Stream) Yapılandırması
       SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-      (RobotBase.isSimulation() ? 
-          () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis())*-1 :
-          () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis())),
+          () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()),
           () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
           .withControllerRotationAxis(() -> 
               RobotBase.isSimulation() ? 
@@ -81,7 +79,6 @@ public class RobotContainer {
     m_driverController.start().onTrue(new InstantCommand(drivebase::zeroGyro));
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
 
-    // 👇 EKLENEN RB (Right Bumper) TUŞ ATAMASI 👇
     // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
     m_driverController.leftBumper().whileTrue(
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.55), m_intake)
@@ -122,12 +119,6 @@ m_driverController.rightBumper().whileTrue(
     new InstantCommand(() -> m_shooter.stop(), m_shooter)
 );
 
-// A Butonu: Stopper mekanizmasını test et
-m_driverController.a().whileTrue(
-    new RunCommand(() -> m_shooter.test(), m_shooter)
-).onFalse(
-    new InstantCommand(() -> m_shooter.stoptest(), m_shooter)
-);
   }
 
   public Command getAutonomousCommand() {
