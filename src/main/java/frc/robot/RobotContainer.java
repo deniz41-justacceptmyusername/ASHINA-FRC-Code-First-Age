@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand; // RunCommand Import edildi
@@ -35,9 +36,15 @@ public class RobotContainer {
   
       // Sürüş Giriş Akışı (Input Stream) Yapılandırması
       SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-          () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()),
+      (RobotBase.isSimulation() ? 
+          () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis())*-1 :
+          () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis())),
           () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
-          .withControllerRotationAxis(() -> m_driverController.getRightX())
+          .withControllerRotationAxis(() -> 
+              RobotBase.isSimulation() ? 
+              -m_driverController.getRightX() * 0.3 : 
+              -m_driverController.getRightX() * 0.5
+          )
           .deadband(OperatorConstants.DEADBAND)
           .scaleTranslation(0.5+m_driverController.getRightTriggerAxis()*0.5) // Hızı %80'e sınırlar, güvenli sürüş sağlar
           .allianceRelativeControl(true);
