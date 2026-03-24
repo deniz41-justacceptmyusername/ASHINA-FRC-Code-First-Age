@@ -40,8 +40,8 @@ public class RobotContainer {
           () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
           .withControllerRotationAxis(() -> 
               RobotBase.isSimulation() ? 
-              -m_driverController.getRightX() * 0.5 : 
-              -m_driverController.getRightX() * 0.5
+              m_driverController.getRightX() * 0.5 : 
+              m_driverController.getRightX() * 0.5
           )
           .deadband(OperatorConstants.DEADBAND)
           .scaleTranslation(0.5+m_driverController.getRightTriggerAxis()*0.5) // Hızı %80'e sınırlar, güvenli sürüş sağlar
@@ -81,7 +81,7 @@ public class RobotContainer {
 
     // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
     m_driverController.leftBumper().whileTrue(
-        new RunCommand(() -> m_intake.setIntakeSpeed(-0.55), m_intake)
+        new RunCommand(() -> m_intake.setIntakeSpeed(-0.45), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );/* 
@@ -113,7 +113,7 @@ public class RobotContainer {
     
 // Right Bumper: Shooter'ı belirlenen RPS hızında çalıştır
 m_driverController.rightBumper().whileTrue(
-    new RunCommand(() -> m_shooter.setShooterVelocity(-25.0), m_shooter)
+    new RunCommand(() -> m_shooter.setShooterVelocity(-70.0), m_shooter)
 ).onFalse(
     // Tuş bırakıldığında motorları tamamen durdur
     new InstantCommand(() -> m_shooter.stop(), m_shooter)

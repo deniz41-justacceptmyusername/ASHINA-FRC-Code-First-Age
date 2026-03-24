@@ -47,8 +47,8 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void setShooterVelocity(double rps) {
         // Motorlar belirlediğin RPS değerine ulaşmak için akımı kendisi ayarlar
-        m_shooterRight.setControl(m_velocityRequest.withVelocity(rps));
-        m_shooterLeft.setControl(m_velocityRequest.withVelocity(rps));
+        m_shooterRight.setControl(m_velocityRequest.withVelocity(-rps));
+        m_shooterLeft.setControl(m_velocityRequest.withVelocity(-rps));
     }
     @Override
     public void periodic(){
