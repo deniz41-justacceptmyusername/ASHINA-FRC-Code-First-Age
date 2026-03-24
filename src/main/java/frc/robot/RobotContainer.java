@@ -22,7 +22,7 @@ public class RobotContainer {
     private final SwerveSubsystem drivebase = new SwerveSubsystem();
     private final IntakeSubsystem m_intake = new IntakeSubsystem(); // Intake buraya bağlandı
     private final ShooterSubsystem m_shooter = new ShooterSubsystem();
-    private final ClimbingSubsystem m_Climber = new ClimbingSubsystem();
+    //private final ClimbingSubsystem m_Climber = new ClimbingSubsystem();
   
     // Xbox Kontrolcüsü (Port 0)
     private final CommandXboxController m_driverController =
@@ -40,7 +40,7 @@ public class RobotContainer {
           () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
           .withControllerRotationAxis(() -> 
               RobotBase.isSimulation() ? 
-              -m_driverController.getRightX() * 0.3 : 
+              -m_driverController.getRightX() * 0.5 : 
               -m_driverController.getRightX() * 0.5
           )
           .deadband(OperatorConstants.DEADBAND)
@@ -84,7 +84,7 @@ public class RobotContainer {
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.55), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
-    );
+    );/* 
     m_driverController.x().whileTrue(
       new RunCommand(() -> m_Climber.RunClimber(0.5),m_Climber)
     ).onFalse(
@@ -99,7 +99,7 @@ public class RobotContainer {
       new RunCommand(() -> m_Climber.getLeft(0.5), m_Climber)
     ).onFalse(
       new InstantCommand(() -> m_Climber.Climbstop(), m_Climber)
-    );
+    );*/
     m_driverController.pov(0).whileTrue(
       new RunCommand(() -> m_intake.getup(), m_intake)
     ).onFalse(
