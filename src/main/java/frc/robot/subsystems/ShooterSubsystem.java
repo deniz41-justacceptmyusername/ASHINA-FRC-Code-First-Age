@@ -55,7 +55,7 @@ public class ShooterSubsystem extends SubsystemBase {
         double leftVelocity = m_shooterLeft.getVelocity().getValueAsDouble();
         double rightVelocity = m_shooterRight.getVelocity().getValueAsDouble();
         
-        if (leftVelocity >= 0.7 && rightVelocity >= 0.7) {
+        if (leftVelocity >= 69 && rightVelocity >= 69) {
             shooterstopper.set(0.3);
         }
         else {
