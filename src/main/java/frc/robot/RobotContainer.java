@@ -38,6 +38,9 @@ public class RobotContainer {
   
       // Varsayılan komut olarak sürüşü ata
       drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
+      m_shooter.setDefaultCommand(
+    new RunCommand(() -> m_shooter.newMotor(), m_shooter)
+);
     }
 
   private void configureBindings() {
@@ -79,16 +82,6 @@ public class RobotContainer {
     );
     m_driverController.rightBumper().whileTrue(
       new RunCommand(() -> m_shooter.setShooterSpeed(-0.3), m_shooter)
-    ).onFalse(
-        new InstantCommand(() -> m_shooter.stop(), m_shooter)
-    );
-    m_driverController.y().whileTrue(
-      new RunCommand(() -> m_shooter.setsecondshooter(0.3), m_shooter)
-    ).onFalse(
-        new InstantCommand(() -> m_shooter.stop(), m_shooter)
-    );
-    m_driverController.a().whileTrue(
-      new RunCommand(() -> m_shooter.setsecondshooter(-0.3), m_shooter)
     ).onFalse(
         new InstantCommand(() -> m_shooter.stop(), m_shooter)
     );
