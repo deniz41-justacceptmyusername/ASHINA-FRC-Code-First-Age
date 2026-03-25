@@ -7,6 +7,14 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.cameraserver.CameraServer;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import edu.wpi.first.wpilibj.RobotBase; 
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -33,9 +41,15 @@ public class Robot extends TimedRobot {
    * <p>This runs after the mode specific periodic functions, but before LiveWindow and
    * SmartDashboard integrated updating.
    */
-   @Override
+// ...
+
+  @Override
   public void robotInit() {
-//CameraServer.startAutomaticCapture();
+    // Sadece gerçek robota atıldığında kamerayı başlatır.
+    // Simülasyonda laptop kamerasını çekmeye çalışıp sistemi çökertmez!
+    if (RobotBase.isReal()) {
+      CameraServer.startAutomaticCapture();
+    }
   }
   @Override
   public void robotPeriodic() {

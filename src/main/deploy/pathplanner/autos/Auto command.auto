@@ -1,0 +1,31 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "BS"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shooter komutu"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "AS"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
