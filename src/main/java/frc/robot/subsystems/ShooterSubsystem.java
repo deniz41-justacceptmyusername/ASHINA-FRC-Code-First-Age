@@ -6,6 +6,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
+import edu.wpi.first.wpilibj.Timer; // 👇 YENİ: Timer kütüphanesi eklendi
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
@@ -19,8 +20,12 @@ public class ShooterSubsystem extends SubsystemBase {
     // Hız kontrolü için talep objesi (Velocity cinsinden)
     private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0);
     
-    // 👇 YENİ: Anlık hedef hızımızı hafızada tutacak değişken 👇
+    // Anlık hedef hızımızı hafızada tutacak değişken
     private double m_hedefRPS = 0.0;
+
+    // 👇 YENİ: Stopper'ın zamanlamasını takip etmek için gereken değişkenler 👇
+    private final Timer m_stopperTimer = new Timer();
+    private boolean m_atisBasladi = false; // Sayacın sadece bir kere başlaması için kontrol
 
     public ShooterSubsystem() {
         // 1. Konfigürasyon objelerini oluştur
@@ -62,26 +67,47 @@ public class ShooterSubsystem extends SubsystemBase {
         double leftVelocity = Math.abs(m_shooterLeft.getVelocity().getValueAsDouble());
         double rightVelocity = Math.abs(m_shooterRight.getVelocity().getValueAsDouble());
         
-        // Eğer motorlara verilmiş bir hedef varsa (çalışıyorlarsa)
+        // Eğer motorlara verilmiş bir hedef varsa (çalışıyorlarsa)       
         if (m_hedefRPS > 0) {
-            // Hedeflenen RPS'in 2 devir/saniye eksiğini baraj olarak belirliyoruz
-            // (Örn: Hedef 70 ise baraj 68 olur. Hedef 50 ise baraj 48 olur.)
             double atisBaraji = m_hedefRPS - 2.0; 
 
-            // İki motor da barajı aştıysa topu ver!
+            // İki motor da barajı aştıysa sekansı başlat!
             if (leftVelocity >= atisBaraji && rightVelocity >= atisBaraji) {
-                shooterstopper.set(0.3);
+                
+                // Hıza ilk ulaştığımız an sayacı başlatıyoruz
+                if (!m_atisBasladi) {
+                    m_stopperTimer.restart(); 
+                    m_atisBasladi = true;
+                }
+
+
+                if (m_stopperTimer.get() < 0.1) {
+                    shooterstopper.set(0.3); 
+                } else {
+                    shooterstopper.set(-0.3); 
+                }
+
             } else {
-                shooterstopper.stopMotor(); // Hızlanıyorsa ama henüz ulaşmadıysa bekle
+                
+                m_atisBasladi = false;
+                m_stopperTimer.stop();
+                shooterstopper.stopMotor(); 
             }
         } else {
-            // Atış komutu yoksa stopper'ı güvenli modda kapalı tut
+            
+            m_atisBasladi = false;
+            m_stopperTimer.stop();
             shooterstopper.stopMotor();
         }
     }
 
     public void stop() {
-        m_hedefRPS = 0.0; // Durduğunda hedefi sıfırlıyoruz ki stopper kendi kendine çalışmasın
+        m_hedefRPS = 0.0; 
+        
+        m_atisBasladi = false;
+        m_stopperTimer.stop();
+        m_stopperTimer.reset();
+        
         m_shooterRight.stopMotor();
         m_shooterLeft.stopMotor();
         shooterstopper.stopMotor();
