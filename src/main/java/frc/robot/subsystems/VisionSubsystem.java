@@ -34,7 +34,7 @@ public class VisionSubsystem {
         return Optional.empty(); // Göremiyorsa boş döndür
     }
     public VisionSubsystem() {
-        camera = new PhotonCamera("photonvision_Port_1182_Output_MJPEG_Server");
+        camera = new PhotonCamera("Camera_Module_v3");
 
         // O yılın resmi saha dizilimini yükle
         try {
