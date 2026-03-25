@@ -128,7 +128,7 @@ public class RobotContainer {
     
 // Right Bumper: Shooter'ı belirlenen RPS hızında çalıştır
 m_driverController.rightBumper().whileTrue(
-    new RunCommand(() -> m_shooter.setShooterVelocity(-70.0), m_shooter)
+    new RunCommand(() -> m_shooter.setShooterVelocity(-75.0), m_shooter)
 ).onFalse(
     // Tuş bırakıldığında motorları tamamen durdur
     new InstantCommand(() -> m_shooter.stop(), m_shooter)
