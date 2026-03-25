@@ -56,8 +56,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
             if (elapsedTime < 0.1) {
                 m_shooterStopper.set(-0.3); // Stopper pozitif dönüyor (senin kodundaki yöne göre)
-                m_shooterRight.setControl(m_velocityRequest.withVelocity(0)); 
-                m_shooterLeft.setControl(m_velocityRequest.withVelocity(0));
+                m_shooterRight.setControl(m_velocityRequest.withVelocity(-5)); 
+                m_shooterLeft.setControl(m_velocityRequest.withVelocity(-5));
                 
             } else {
                 m_shooterRight.setControl(m_velocityRequest.withVelocity(m_targetRPS));

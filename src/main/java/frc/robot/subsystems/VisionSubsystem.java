@@ -57,7 +57,30 @@ public class VisionSubsystem {
         }
         return Optional.empty(); 
     }
+    public Optional<Double> getAverageYaw(int... targetIds) {
+        PhotonPipelineResult result = camera.getLatestResult();
+        
+        if (result.hasTargets()) {
+            double totalYaw = 0;
+            int tagNumber = 0;
 
+            // Kameranın gördüğü tüm hedefleri tara
+            for (var target : result.getTargets()) {
+             
+                for (int id : targetIds) {
+                    if (target.getFiducialId() == id) {
+                        totalYaw += target.getYaw();
+                        tagNumber++;
+                        break; 
+                    }
+                }
+            }
+            if (tagNumber > 0) {
+                return Optional.of(totalYaw / tagNumber); // Tam ortayı bul!
+            }
+        }
+        return Optional.empty(); // Hiçbirini göremiyorsa boş döndür
+    }
     // YENİ: İstenilen Tag ID'sinin kamerada kapladığı alanı (% olarak) verir. Uzaklık için!
     public Optional<Double> getTargetArea(int targetId) {
         PhotonPipelineResult result = camera.getLatestResult();

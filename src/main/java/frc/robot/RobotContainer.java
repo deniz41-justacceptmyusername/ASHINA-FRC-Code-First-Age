@@ -34,7 +34,9 @@ public class RobotContainer {
         new CommandXboxController(OperatorConstants.kDriverControllerPort);
     
     private final PIDController aimPID = new PIDController(0.03, 0.0, 0.0); 
-    private final int TARGET_TAG_ID = 27; 
+    private final int TARGET_TAG_27 = 27;
+    private final int TARGET_TAG_18 = 18;
+    private final int TARGET_TAG_20 = 20;
 
     // 👉 YENİ: Bütün mesafeler için mükemmel kavis çizen Hız Haritamız!
     private final InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
@@ -83,7 +85,7 @@ public class RobotContainer {
     // Otonom atışını da haritaya bağladım ki otonomda da mesafeye göre atsın!
     NamedCommands.registerCommand("shooter komutu", 
         new RunCommand(() -> {
-            Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_ID);
+            Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_27);
             double currentSpeed = 65.0; 
             if (areaOpt.isPresent()) {
                 currentSpeed = shooterSpeedMap.get(areaOpt.get());
@@ -93,7 +95,9 @@ public class RobotContainer {
             .withTimeout(5.0) 
             .andThen(() -> m_shooter.stop(), m_shooter) 
     );
+    
   }
+
 
   private void configureBindings() {
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
@@ -143,7 +147,7 @@ public class RobotContainer {
     // 👉 YENİ: Harita (Interpolating Map) kullanan Kusursuz Atış Sistemi
     m_driverController.rightBumper().whileTrue(
         new RunCommand(() -> {
-            Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_ID);
+            Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_27);
             double currentSpeed = 65.0; // Kamerayı kapatırsan atacağı varsayılan hız
 
             if (areaOpt.isPresent()) {
@@ -162,22 +166,29 @@ public class RobotContainer {
         new InstantCommand(() -> m_shooter.stop(), m_shooter)
     );
 
-    SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
+SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
         () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()),
         () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
         .withControllerRotationAxis(() -> {
-            var yawOpt = m_vision.getTargetYaw(TARGET_TAG_ID);
-            if (yawOpt.isPresent()) {
-                return -aimPID.calculate(yawOpt.get(), 0.0); 
+            
+            // YENİ YAZDIĞIMIZ ÇOKLU TAG METODUNU ÇAĞIRIYORUZ
+            var midYawOpt = m_vision.getAverageYaw(20, 26, 27);
+            
+            // SÜSLÜ PARANTEZ İÇİNDE OLDUĞUMUZ İÇİN "return" KULLANMAK ZORUNLU!
+            if (midYawOpt.isPresent()) {
+                // Hedefi bulduysa PID ile hesaplanan dönüş hızını "return" et
+                return -aimPID.calculate(midYawOpt.get(), 0.0); 
             } else {
+                // Göremiyorsa sağ analog çubuğun değerini "return" et (manuel kontrol)
                 return m_driverController.getRightX();
             }
+            
         })
         .deadband(OperatorConstants.DEADBAND)
         .scaleTranslation(0.5+m_driverController.getRightTriggerAxis()*0.5)
         .allianceRelativeControl(true);
 
-    m_driverController.a().whileTrue(
+        m_driverController.a().whileTrue(
         drivebase.driveFieldOriented(aimAngularVelocity)
     );
   }
