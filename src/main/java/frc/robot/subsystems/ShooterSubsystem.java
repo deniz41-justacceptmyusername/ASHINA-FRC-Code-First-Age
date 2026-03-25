@@ -42,11 +42,14 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void setShooterVelocity(double rps) {
-        // BURASI DEĞİŞTİ: Artık motorlara gücü hemen burada vermiyoruz.
-        // Sadece hedefi belirleyip kronometreyi başlatıyoruz. İşin geri kalanı periodic'te.
+        // Hedefi her halükarda güncelliyoruz
         m_hedefRPS = Math.abs(rps); 
-        m_atisAktif = true;
-        m_timer.restart(); // Tuşa basıldığı an sıfırlanıp başlar
+        
+        // 👉 BURASI DEĞİŞTİ: Tuşa basılı tutulduğunda timer'ın sürekli sıfırlanmasını engelliyoruz
+        if (!m_atisAktif) {
+            m_timer.restart(); 
+            m_atisAktif = true;
+        }
     }
 
     @Override
@@ -57,14 +60,14 @@ public class ShooterSubsystem extends SubsystemBase {
 
             if (gecenSure < 0.1) {
                 // 👉 AŞAMA 1: İlk 0.1 saniye
-                shooterstopper.set(0.3); // Stopper pozitif dönüyor
+                shooterstopper.set(-0.3); // Stopper pozitif dönüyor
                 m_shooterRight.setControl(m_velocityRequest.withVelocity(0)); // Ana motorlar bekliyor
                 m_shooterLeft.setControl(m_velocityRequest.withVelocity(0));
                 
             } else {
                 // 👉 AŞAMA 2: 0.1 saniye bitti, ana motorlara ivmeyi ver
-                m_shooterRight.setControl(m_velocityRequest.withVelocity(-m_hedefRPS));
-                m_shooterLeft.setControl(m_velocityRequest.withVelocity(-m_hedefRPS));
+                m_shooterRight.setControl(m_velocityRequest.withVelocity(m_hedefRPS));
+                m_shooterLeft.setControl(m_velocityRequest.withVelocity(m_hedefRPS));
 
                 // Ana motorların anlık hızlarını kontrol et
                 double leftVelocity = Math.abs(m_shooterLeft.getVelocity().getValueAsDouble());
@@ -73,10 +76,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
                 if (leftVelocity >= atisBaraji && rightVelocity >= atisBaraji) {
                     // 👉 AŞAMA 3: Motorlar ivmesini aldı (hedefe ulaştı)
-                    shooterstopper.set(-0.3); // Stopper'ı tersine (negatif) çevir ve fırlat!
+                    shooterstopper.set(0.3); // Stopper'ı tersine (negatif) çevir ve fırlat!
                 } else {
                     // (Aşama 2 Devamı): Hala ivmelenme aşamasındalar, hedefe ulaşmadılar
-                    shooterstopper.set(0.3); // Stopper pozitif dönmeye devam ediyor
+                    shooterstopper.set(-0.3); // Stopper pozitif dönmeye devam ediyor
                 }
             }
         } else {
