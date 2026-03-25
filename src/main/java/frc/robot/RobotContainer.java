@@ -38,9 +38,7 @@ public class RobotContainer {
   
       // Varsayılan komut olarak sürüşü ata
       drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity));
-      m_shooter.setDefaultCommand(
-    new RunCommand(() -> m_shooter.newMotor(), m_shooter)
-);
+
     }
 
   private void configureBindings() {
