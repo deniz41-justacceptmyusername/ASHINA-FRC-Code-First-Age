@@ -11,28 +11,13 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Pose3d; // BUNU EKLE
+import edu.wpi.first.math.geometry.Pose3d;
 
 public class VisionSubsystem {
     private final PhotonCamera camera;
     private final PhotonPoseEstimator poseEstimator;
-    private final AprilTagFieldLayout fieldLayout; // SINIF SEVİYESİNE TAŞINDI
-// YENİ EKLENEN: İstenilen Tag ID'sini kamerada arar ve merkezden ne kadar sapmış (Yaw) onu verir.
-    public Optional<Double> getTargetYaw(int targetId) {
-        PhotonPipelineResult result = camera.getLatestResult();
-        
-        // Eğer kamera bir şeyler görüyorsa
-        if (result.hasTargets()) {
-            // Gördüğü tüm hedefleri tara
-            for (var target : result.getTargets()) {
-                // Eğer gördüğü hedef aradığımız ID ise (Örn: 27)
-                if (target.getFiducialId() == targetId) {
-                    return Optional.of(target.getYaw()); // Sapma açısını derece cinsinden döndür
-                }
-            }
-        }
-        return Optional.empty(); // Göremiyorsa boş döndür
-    }
+    private final AprilTagFieldLayout fieldLayout; 
+
     public VisionSubsystem() {
         camera = new PhotonCamera("Camera_Module_v3");
 
@@ -43,9 +28,6 @@ public class VisionSubsystem {
             throw new RuntimeException("AprilTag haritası yüklenemedi!", e);
         }
 
-// DİKKAT: Eğer kamera robotun merkezine göre arka tarafa monte edildiyse, 
-        // Translation3d içindeki X değerini de eksi yapmalısın (Örn: -0.2).
-        // Eğer fiziksel olarak önde ama arkaya bakıyorsa 0.2 olarak kalabilir.
         Transform3d robotToCam = new Transform3d(
                 new Translation3d(-0.2, 0.0, 0.1), // Kameranın merkezden konumu (X, Y, Z)
                 new Rotation3d(
@@ -62,12 +44,39 @@ public class VisionSubsystem {
         );
     }
 
+    // İstenilen Tag ID'sini kamerada arar ve merkezden ne kadar sapmış (Yaw) onu verir.
+    public Optional<Double> getTargetYaw(int targetId) {
+        PhotonPipelineResult result = camera.getLatestResult();
+        
+        if (result.hasTargets()) {
+            for (var target : result.getTargets()) {
+                if (target.getFiducialId() == targetId) {
+                    return Optional.of(target.getYaw());
+                }
+            }
+        }
+        return Optional.empty(); 
+    }
+
+    // YENİ: İstenilen Tag ID'sinin kamerada kapladığı alanı (% olarak) verir. Uzaklık için!
+    public Optional<Double> getTargetArea(int targetId) {
+        PhotonPipelineResult result = camera.getLatestResult();
+        
+        if (result.hasTargets()) {
+            for (var target : result.getTargets()) {
+                if (target.getFiducialId() == targetId) {
+                    return Optional.of(target.getArea()); 
+                }
+            }
+        }
+        return Optional.empty(); 
+    }
+
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose() {
         PhotonPipelineResult result = camera.getLatestResult();
         return poseEstimator.update(result);
     }
 
-    // YENİ METOD: İstediğimiz ID'ye sahip AprilTag'in sahadaki mutlak konumunu verir
     public Optional<Pose3d> getTagPose(int tagID) {
         if (fieldLayout == null) return Optional.empty();
         return fieldLayout.getTagPose(tagID);
