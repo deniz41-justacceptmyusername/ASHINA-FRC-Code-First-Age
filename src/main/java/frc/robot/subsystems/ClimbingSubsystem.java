@@ -8,7 +8,7 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkBase.PersistMode;
 
 public class ClimbingSubsystem extends SubsystemBase {
-    private final SparkMax m_climberRight = new SparkMax(1, MotorType.kBrushless);
+    private final SparkMax m_climberRight = new SparkMax(4, MotorType.kBrushless);
     private final SparkMax m_climberLeft = new SparkMax(2, MotorType.kBrushless);
     private final SparkMax m_climberNew = new SparkMax(3, MotorType.kBrushless);
 
@@ -58,7 +58,7 @@ public class ClimbingSubsystem extends SubsystemBase {
     
     public void RunClimber(double speed) {
         // motorları çalıştırır
-        m_climberRight.set(speed);
+        m_climberRight.set(-speed);
         m_climberLeft.set(speed);
     }
 

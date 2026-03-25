@@ -13,7 +13,8 @@ import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import swervelib.SwerveInputStream;
 import edu.wpi.first.math.controller.PIDController;
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 // PathPlanner Kütüphaneleri (Otonom için eklendi)
 import com.pathplanner.lib.auto.NamedCommands;
  
@@ -84,10 +85,16 @@ public class RobotContainer {
     );
   }
 
-  private void configureBindings() {
-    // Start butonu veya B butonu Gyro'yu sıfırlar
-    m_driverController.start().onTrue(new InstantCommand(drivebase::zeroGyro));
+private void configureBindings() {
+    // B butonu Gyro'yu tamamen sıfırlar (İleri yönü sahaya göre sıfırlar)
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
+
+    // 👇 YENİ: Start butonu Gyro'nun o anki açısına 180 derece ekler (Yönü ters çevirir) 👇
+    m_driverController.start().onTrue(new InstantCommand(() -> {
+        Pose2d mevcutKonum = drivebase.getPose();
+        Rotation2d tersAci = mevcutKonum.getRotation().plus(Rotation2d.fromDegrees(180));
+        drivebase.resetOdometry(new Pose2d(mevcutKonum.getTranslation(), tersAci));
+    }));
 
     // Tuşa basılı tutunca %70 güçle çalışır, çekince stop() metodunu çağırır
     m_driverController.leftBumper().whileTrue(
@@ -95,16 +102,18 @@ public class RobotContainer {
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );
+    
     m_driverController.x().whileTrue(
-      new RunCommand(() -> m_Climber.RunClimber(0.5),m_Climber)
+      new RunCommand(() -> m_Climber.RunClimber(0.1),m_Climber)
     ).onFalse(
       new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
     );
-// SAĞA TIRMANMA (90)
+    
+    // SAĞA TIRMANMA (90)
     m_driverController.pov(90).whileTrue(
       new RunCommand(() -> m_Climber.getRight(0.5), m_Climber)
     ).onFalse(
-      new InstantCommand(() -> m_Climber.Climbnewstop(), m_Climber) // RunCommand yerine InstantCommand yapıldı
+      new InstantCommand(() -> m_Climber.Climbnewstop(), m_Climber) 
     );
 
     // SOLA TIRMANMA (270)
@@ -126,17 +135,14 @@ public class RobotContainer {
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
     
-// Right Bumper: Shooter'ı belirlenen RPS hızında çalıştır
-m_driverController.rightBumper().whileTrue(
-    new RunCommand(() -> m_shooter.setShooterVelocity(-65.0), m_shooter)
-).onFalse(
-    // Tuş bırakıldığında motorları tamamen durdur
-    new InstantCommand(() -> m_shooter.stop(), m_shooter)
-);
+    // Right Bumper: Shooter'ı belirlenen RPS hızında çalıştır
+    m_driverController.rightBumper().whileTrue(
+        new RunCommand(() -> m_shooter.setShooterVelocity(-65.0), m_shooter)
+    ).onFalse(
+        new InstantCommand(() -> m_shooter.stop(), m_shooter)
+    );
 
-
-    // 👇 YENİ EKLENEN KISIM: A TUŞUNA BASILI TUTUNCA KİLİTLENME 👇
-    // 1. Kilitlenme (Aim) Akışını yaratıyoruz
+    // A TUŞUNA BASILI TUTUNCA KİLİTLENME (AIM)
     SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
         () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()),
         () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
@@ -152,7 +158,6 @@ m_driverController.rightBumper().whileTrue(
         .scaleTranslation(0.5+m_driverController.getRightTriggerAxis()*0.5)
         .allianceRelativeControl(true);
 
-    // 2. Bu akışı 'A' tuşuna bağlıyoruz
     m_driverController.a().whileTrue(
         drivebase.driveFieldOriented(aimAngularVelocity)
     );
