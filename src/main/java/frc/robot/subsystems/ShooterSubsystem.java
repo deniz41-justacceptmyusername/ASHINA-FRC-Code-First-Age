@@ -6,7 +6,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
-import edu.wpi.first.wpilibj.Timer; // 👇 YENİ: Timer kütüphanesi eklendi
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ShooterConstants;
@@ -17,96 +17,82 @@ public class ShooterSubsystem extends SubsystemBase {
     private final TalonFX m_shooterLeft = new TalonFX(61, ShooterConstants.kCANBus);
     private final PWMSparkMax shooterstopper = new PWMSparkMax(1);
     
-    // Hız kontrolü için talep objesi (Velocity cinsinden)
     private final VelocityVoltage m_velocityRequest = new VelocityVoltage(0);
     
-    // Anlık hedef hızımızı hafızada tutacak değişken
     private double m_hedefRPS = 0.0;
-
-    // 👇 YENİ: Stopper'ın zamanlamasını takip etmek için gereken değişkenler 👇
-    private final Timer m_stopperTimer = new Timer();
-    private boolean m_atisBasladi = false; // Sayacın sadece bir kere başlaması için kontrol
+    private final Timer m_timer = new Timer();
+    
+    // Sistemin çalışıp çalışmadığını takip eden bayrak
+    private boolean m_atisAktif = false; 
 
     public ShooterSubsystem() {
-        // 1. Konfigürasyon objelerini oluştur
         var shooterConfigs = new MotorOutputConfigs();
         var pidConfigs = new Slot0Configs();
 
-        // 2. Yön ayarlarını yap (Inverted)
         shooterConfigs.Inverted = InvertedValue.Clockwise_Positive; 
-        
-        // 3. PID ve FF değerlerini tanımla
         pidConfigs.kP = 0.11;
         pidConfigs.kV = 0.12;
 
-        // 4. Configurator ile ayarları motorlara gönder
         m_shooterRight.getConfigurator().apply(shooterConfigs);
         m_shooterRight.getConfigurator().apply(pidConfigs);
 
-        // Sol motor için yönü tersine çevirip uygula
         shooterConfigs.Inverted = InvertedValue.CounterClockwise_Positive;
         m_shooterLeft.getConfigurator().apply(shooterConfigs);
         m_shooterLeft.getConfigurator().apply(pidConfigs);
     }
 
-    /**
-     * @param rps Saniyedeki devir sayısı (Rotations Per Second)
-     */
     public void setShooterVelocity(double rps) {
-        // Hedefi hafızaya al. Negatif sayı gelsen bile pozitif olarak kaydederiz (güvenlik için)
+        // BURASI DEĞİŞTİ: Artık motorlara gücü hemen burada vermiyoruz.
+        // Sadece hedefi belirleyip kronometreyi başlatıyoruz. İşin geri kalanı periodic'te.
         m_hedefRPS = Math.abs(rps); 
-
-        // Motorlar belirlediğin RPS değerine ulaşmak için akımı kendisi ayarlar
-        m_shooterRight.setControl(m_velocityRequest.withVelocity(-rps));
-        m_shooterLeft.setControl(m_velocityRequest.withVelocity(-rps));
+        m_atisAktif = true;
+        m_timer.restart(); // Tuşa basıldığı an sıfırlanıp başlar
     }
 
     @Override
     public void periodic() {
-        // Motorlardan anlık hızları al (eksiye dönüyorlarsa diye Math.abs ile pozitife çeviriyoruz)
-        double leftVelocity = Math.abs(m_shooterLeft.getVelocity().getValueAsDouble());
-        double rightVelocity = Math.abs(m_shooterRight.getVelocity().getValueAsDouble());
-        
-        // Eğer motorlara verilmiş bir hedef varsa (çalışıyorlarsa)       
-        if (m_hedefRPS > 0) {
-            double atisBaraji = m_hedefRPS - 2.0; 
+        // Eğer bir atış komutu verildiyse
+        if (m_atisAktif && m_hedefRPS > 0) {
+            double gecenSure = m_timer.get();
 
-            // İki motor da barajı aştıysa sekansı başlat!
-            if (leftVelocity >= atisBaraji && rightVelocity >= atisBaraji) {
+            if (gecenSure < 0.1) {
+                // 👉 AŞAMA 1: İlk 0.1 saniye
+                shooterstopper.set(0.3); // Stopper pozitif dönüyor
+                m_shooterRight.setControl(m_velocityRequest.withVelocity(0)); // Ana motorlar bekliyor
+                m_shooterLeft.setControl(m_velocityRequest.withVelocity(0));
                 
-                // Hıza ilk ulaştığımız an sayacı başlatıyoruz
-                if (!m_atisBasladi) {
-                    m_stopperTimer.restart(); 
-                    m_atisBasladi = true;
-                }
-
-
-                if (m_stopperTimer.get() < 0.1) {
-                    shooterstopper.set(0.3); 
-                } else {
-                    shooterstopper.set(-0.3); 
-                }
-
             } else {
-                
-                m_atisBasladi = false;
-                m_stopperTimer.stop();
-                shooterstopper.stopMotor(); 
+                // 👉 AŞAMA 2: 0.1 saniye bitti, ana motorlara ivmeyi ver
+                m_shooterRight.setControl(m_velocityRequest.withVelocity(-m_hedefRPS));
+                m_shooterLeft.setControl(m_velocityRequest.withVelocity(-m_hedefRPS));
+
+                // Ana motorların anlık hızlarını kontrol et
+                double leftVelocity = Math.abs(m_shooterLeft.getVelocity().getValueAsDouble());
+                double rightVelocity = Math.abs(m_shooterRight.getVelocity().getValueAsDouble());
+                double atisBaraji = m_hedefRPS - 2.0;
+
+                if (leftVelocity >= atisBaraji && rightVelocity >= atisBaraji) {
+                    // 👉 AŞAMA 3: Motorlar ivmesini aldı (hedefe ulaştı)
+                    shooterstopper.set(-0.3); // Stopper'ı tersine (negatif) çevir ve fırlat!
+                } else {
+                    // (Aşama 2 Devamı): Hala ivmelenme aşamasındalar, hedefe ulaşmadılar
+                    shooterstopper.set(0.3); // Stopper pozitif dönmeye devam ediyor
+                }
             }
         } else {
-            
-            m_atisBasladi = false;
-            m_stopperTimer.stop();
+            // Atış komutu yoksa motorları güvenli bir şekilde kapat
             shooterstopper.stopMotor();
+            // Control modunu 0 hıza çekiyoruz ki motor kendini frenlesin
+            m_shooterRight.setControl(m_velocityRequest.withVelocity(0));
+            m_shooterLeft.setControl(m_velocityRequest.withVelocity(0));
         }
     }
 
     public void stop() {
         m_hedefRPS = 0.0; 
-        
-        m_atisBasladi = false;
-        m_stopperTimer.stop();
-        m_stopperTimer.reset();
+        m_atisAktif = false; // Sistemi inaktif yap
+        m_timer.stop();
+        m_timer.reset();
         
         m_shooterRight.stopMotor();
         m_shooterLeft.stopMotor();
@@ -115,6 +101,5 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
-
     }
 }
