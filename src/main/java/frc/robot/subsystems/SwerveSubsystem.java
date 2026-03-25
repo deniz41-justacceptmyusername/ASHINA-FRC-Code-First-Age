@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.DriverStation; // İttifak rengi için eklendi
+import edu.wpi.first.wpilibj.DriverStation; 
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
@@ -17,12 +17,8 @@ import swervelib.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.geometry.Rotation2d;
-import org.photonvision.EstimatedRobotPose; // Vizyon için eklendi
+import org.photonvision.EstimatedRobotPose; 
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-// --- GÜNCEL PATHPLANNER KÜTÜPHANELERİ ---
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.config.PIDConstants;
@@ -36,7 +32,6 @@ public class SwerveSubsystem extends SubsystemBase {
   // Vizyon sistemini tutacağımız değişken
   private final VisionSubsystem vision; 
 
-  // CONSTRUCTOR GÜNCELLENDİ: Artık VisionSubsystem istiyor
   public SwerveSubsystem(VisionSubsystem vision) {
     this.vision = vision; // RobotContainer'dan gelen vizyonu kaydet
     
@@ -55,37 +50,33 @@ public class SwerveSubsystem extends SubsystemBase {
     setupPathPlanner();
   }
 
-  // YENİ METOT: Güncel PathPlanner Ayarları
   public void setupPathPlanner() {
-    // 1. Arayüzden (GUI) robot ayarlarını çek
     RobotConfig config;
     try {
         config = RobotConfig.fromGUISettings();
     } catch (Exception e) {
         e.printStackTrace();
-        return; // Ayarlar okunamadıysa çökmesini engelle
+        return; 
     }
 
-    // 2. Yeni sisteme göre AutoBuilder'ı yapılandır
     AutoBuilder.configure(
-        swerveDrive::getPose, // Robotun anlık konumu
-        swerveDrive::resetOdometry, // Konumu sıfırlama
-        swerveDrive::getRobotVelocity, // Robotun şasi hızını okuma
-        (speeds, feedforwards) -> swerveDrive.setChassisSpeeds(speeds), // YAGSL sürüş metodu
-        new PPHolonomicDriveController( // Yeni sürüş kontrolcüsü
-            new PIDConstants(5.0, 0.0, 0.0), // X ve Y ekseni PID ayarları
-            new PIDConstants(5.0, 0.0, 0.0)  // Dönüş (Rotation) PID ayarları
+        swerveDrive::getPose, 
+        swerveDrive::resetOdometry, 
+        swerveDrive::getRobotVelocity, 
+        (speeds, feedforwards) -> swerveDrive.setChassisSpeeds(speeds), 
+        new PPHolonomicDriveController( 
+            new PIDConstants(5.0, 0.0, 0.0), 
+            new PIDConstants(5.0, 0.0, 0.0)  
         ),
-        config, // Yukarıda okuduğumuz RobotConfig ayarları
+        config, 
         () -> {
-            // Kırmızı ittifaktayken rotayı otomatik aynalar
             var alliance = DriverStation.getAlliance();
             if (alliance.isPresent()) {
                 return alliance.get() == DriverStation.Alliance.Red;
             }
             return false;
         },
-        this // Alt sistemi zorunlu kılar
+        this 
     );
   }
 
@@ -110,7 +101,8 @@ public class SwerveSubsystem extends SubsystemBase {
   }
   
   public void robotPeriodic() {
-    SwerveDriveTelemetry.updateData();
+    // ÇÖKMEYİ ENGELLEMEK İÇİN YORUM SATIRINDA KALIYOR
+    // SwerveDriveTelemetry.updateData();
   }
 
   @Override
@@ -118,7 +110,7 @@ public class SwerveSubsystem extends SubsystemBase {
     // 1. YAGSL'ın kendi tekerlek/gyro odometrisini güncelle
     swerveDrive.updateOdometry();
 
-    // 2. VİZYON GÜNCELLEMESİ (YENİ EKLENEN KISIM)
+    // 2. VİZYON GÜNCELLEMESİ (Eğer vizyon varsa)
     if (vision != null) {
         Optional<EstimatedRobotPose> visionPose = vision.getEstimatedGlobalPose();
         
@@ -134,10 +126,10 @@ public class SwerveSubsystem extends SubsystemBase {
     
     // 3. Haritayı güncellenmiş (tekerlek + kamera) kusursuz konumla besle
     m_field.setRobotPose(swerveDrive.getPose());
-    
-    // Telemetry ve Dashboard güncellemeleri
-    SwerveDriveTelemetry.updateData();
     SmartDashboard.putData("Field", m_field);
+    
+    // BİZİ ÇÖKERTEN YAGSL TELEMETRİSİ KAPALI KALMAYA DEVAM EDİYOR
+    // SwerveDriveTelemetry.updateData();
   }
 
   public Pose2d getPose() {
@@ -145,21 +137,6 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void resetOdometry(Pose2d pose) {
-
-@Override
-  public void periodic() {
-    // 1. Simülasyonun arka planda çalışması ve fizik hesaplaması için bu ŞART:
-    swerveDrive.updateOdometry(); 
-    
-    // 2. Bizi çökerten YAGSL telemetrisi KAPALI KALMAYA DEVAM EDİYOR:
-    // SwerveDriveTelemetry.updateData(); 
-    
-    // 3. YENİ KISIM: Robotun koordinatlarını al ve güvenli haritaya (Field2d) yansıt!
-    m_field.setRobotPose(swerveDrive.getPose());
-    SmartDashboard.putData("Field", m_field);
-  }
-
-  public void resetOdometry(edu.wpi.first.math.geometry.Pose2d pose) {
     swerveDrive.resetOdometry(pose);
   }
 }

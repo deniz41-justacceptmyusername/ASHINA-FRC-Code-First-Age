@@ -8,12 +8,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.cameraserver.CameraServer;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkBase.PersistMode;
 import edu.wpi.first.wpilibj.RobotBase; 
 
 /**
@@ -48,7 +42,7 @@ public class Robot extends TimedRobot {
     // Sadece gerçek robota atıldığında kamerayı başlatır.
     // Simülasyonda laptop kamerasını çekmeye çalışıp sistemi çökertmez!
     if (RobotBase.isReal()) {
-      CameraServer.startAutomaticCapture();
+     // CameraServer.startAutomaticCapture();
     }
   }
   @Override

@@ -11,7 +11,6 @@ public class ClimbingSubsystem extends SubsystemBase {
     private final SparkMax m_climberRight = new SparkMax(1, MotorType.kBrushless);
     private final SparkMax m_climberLeft = new SparkMax(2, MotorType.kBrushless);
     private final SparkMax m_climberNew = new SparkMax(3, MotorType.kBrushless);
->>>>>>> main
 
     public ClimbingSubsystem() {
         // Temel konfigürasyon oluşturuldu
@@ -46,15 +45,15 @@ public class ClimbingSubsystem extends SubsystemBase {
     }
 
     public void getLeft(double speed) {
-        SparkMaxConfig m_climbing = new SparkMaxConfig();
+       /*  SparkMaxConfig m_climbing = new SparkMaxConfig();
 
         SparkMaxConfig newClimberConfig = new SparkMaxConfig();
         newClimberConfig.apply(m_climbing); // konfigürasyon
         m_climbing.idleMode(SparkMaxConfig.IdleMode.kBrake);
         newClimberConfig.inverted(false);
 
-        m_climberNew.configure(newClimberConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        m_climberNew.set(speed);
+        m_climberNew.configure(newClimberConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);*/
+        m_climberNew.set(-speed);
     }
     
     public void RunClimber(double speed) {
@@ -66,7 +65,9 @@ public class ClimbingSubsystem extends SubsystemBase {
     public void Climbstop() {
         // motorları durdurur
         m_climberRight.stopMotor();
-        m_climberLeft.stopMotor();
-        m_climberNew.stopMotor(); // Güvenlik için bunu da ekledik
+        m_climberLeft.stopMotor();// Güvenlik için bunu da ekledik
+    }
+    public void Climbnewstop() {
+        m_climberNew.stopMotor();
     }
 }

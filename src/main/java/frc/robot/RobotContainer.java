@@ -94,47 +94,26 @@ public class RobotContainer {
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.475), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
-    );/* 
+    );
     m_driverController.x().whileTrue(
       new RunCommand(() -> m_Climber.RunClimber(0.5),m_Climber)
     ).onFalse(
       new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
     );
-    
-    m_driverController.rightBumper().whileTrue(
-      new RunCommand(() -> m_shooter.setShooterSpeed(-0.3), m_shooter)
-    ).onFalse(
-        new InstantCommand(() -> m_shooter.stop(), m_shooter)
-    );
-
-    // Climber (Tırmanma) Tuşları
-    m_driverController.x().whileTrue(
-      new RunCommand(() -> m_Climber.RunClimber(0.5),m_Climber)
-    ).onFalse(
-      new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
-    );
-    
-    m_driverController.povRight().whileTrue( // pov(90) yerine okunaklı hali
+// SAĞA TIRMANMA (90)
     m_driverController.pov(90).whileTrue(
       new RunCommand(() -> m_Climber.getRight(0.5), m_Climber)
     ).onFalse(
-      new RunCommand(() -> m_Climber.Climbstop(), m_Climber)
-    );
-    
-    // NOT: POV 360 geçersizdir, ÜST tuş her zaman 0'dır. O yüzden burayı povUp yapıyorum
-    m_driverController.povUp().whileTrue( 
-      new RunCommand(() -> m_Climber.getLeft(0.5), m_Climber)
-    ).onFalse(
-      new InstantCommand(() -> m_Climber.Climbstop(), m_Climber)
+      new InstantCommand(() -> m_Climber.Climbnewstop(), m_Climber) // RunCommand yerine InstantCommand yapıldı
     );
 
-    // Intake Asansör Tuşları (0 ve 180)
-    m_driverController.povUp().whileTrue( // pov(0)
-    m_driverController.pov(360).whileTrue(
+    // SOLA TIRMANMA (270)
+    m_driverController.pov(270).whileTrue( 
       new RunCommand(() -> m_Climber.getLeft(0.5), m_Climber)
     ).onFalse(
-      new InstantCommand(() -> m_Climber.Climbstop(), m_Climber)
-    );*/
+      new InstantCommand(() -> m_Climber.Climbnewstop(), m_Climber)
+    );
+
     m_driverController.pov(0).whileTrue(
       new RunCommand(() -> m_intake.getup(), m_intake)
     ).onFalse(
