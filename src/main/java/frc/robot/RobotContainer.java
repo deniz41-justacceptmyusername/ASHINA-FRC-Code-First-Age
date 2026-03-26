@@ -148,7 +148,7 @@ public class RobotContainer {
     m_driverController.rightBumper().whileTrue(
         new RunCommand(() -> {
             Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_27);
-            double currentSpeed = 65.0; // Kamerayı kapatırsan atacağı varsayılan hız
+            double currentSpeed = 60.0; // Kamerayı kapatırsan atacağı varsayılan hız
 
             if (areaOpt.isPresent()) {
                 double alan = areaOpt.get();
