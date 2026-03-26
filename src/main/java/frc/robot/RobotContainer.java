@@ -7,8 +7,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand; 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
-// Kavisli hesaplama ve ekrana veri yazdırmak için gereken kütüphaneler
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.robot.Constants.OperatorConstants;
@@ -21,7 +19,7 @@ import swervelib.SwerveInputStream;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d; // Otonomda hizalanırken robotu sabit tutmak için
+import edu.wpi.first.math.geometry.Translation2d; 
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -38,20 +36,8 @@ public class RobotContainer {
     
     private final PIDController aimPID = new PIDController(0.03, 0.0, 0.0); 
     private final int TARGET_TAG_27 = 27;
-    private final int TARGET_TAG_18 = 18;
-    private final int TARGET_TAG_20 = 20;
 
-    // Bütün mesafeler için mükemmel kavis çizen Hız Haritamız!
-    private final InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
-    
     public RobotContainer() {
-      // 🎯 HARİTA DEĞERLERİ (ALAN -> HIZ)
-      shooterSpeedMap.put(0.85, 55.0); // Çok Yakın
-      shooterSpeedMap.put(0.70, 65.0); // Yakın 
-      shooterSpeedMap.put(0.55, 70.0); // Orta 
-      shooterSpeedMap.put(0.35, 78.0); // Uzak
-      shooterSpeedMap.put(0.15, 85.0); // Çok Uzak
-
       registerPathPlannerCommands();
       configureBindings();
   
@@ -71,24 +57,20 @@ public class RobotContainer {
     }
 
   private void registerPathPlannerCommands() {
-    // 1. INTAKE OPENING: Intake mekanizmasını 1.5 saniye aşağı indirir
     NamedCommands.registerCommand("intake opening", 
         new RunCommand(() -> m_intake.getdown(), m_intake)
             .withTimeout(1.5) 
             .andThen(() -> m_intake.backstop(), m_intake)
     );
 
-    // 2. INTAGE BEGIN: Intake tekerleklerini 4 saniye içeri döndürür
     NamedCommands.registerCommand("intage begin", 
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
             .withTimeout(4.0) 
             .andThen(() -> m_intake.frontstop(), m_intake) 
     );
 
-    // 👉 YENİ 3. ALLIGN: Otonomda 0.5 saniye boyunca kameradaki hedeflere kilitlenir
     NamedCommands.registerCommand("allign", 
         new RunCommand(() -> {
-            // 20, 26, 27 tag'lerinin tam ortasını arıyoruz
             var midYawOpt = m_vision.getAverageYaw(20, 26, 27);
             double rotationSpeed = 0.0;
             
@@ -96,14 +78,11 @@ public class RobotContainer {
                 rotationSpeed = -aimPID.calculate(midYawOpt.get(), 0.0); 
             }
             
-            // 👉 HATA BURADA DÜZELTİLDİ: YAGSL kütüphanesinin çekirdek motor kontrolüne bağlandı
-            // (İleri-Geri 0, Sağ-Sol 0, Sadece kendi ekseninde rotationSpeed ile dön)
             drivebase.getSwerveDrive().drive(new Translation2d(0, 0), rotationSpeed, false, false);
         }, drivebase)
         .withTimeout(0.5) 
     );
 
-    // 👉 YENİ 4. SHOOTER KOMUTU: Otonomda 65.0 sabit hızıyla 5 saniye ateş eder
     NamedCommands.registerCommand("shooter komutu", 
         new RunCommand(() -> m_shooter.setShooterVelocity(65.0), m_shooter) 
             .withTimeout(5.0) 
@@ -156,18 +135,19 @@ public class RobotContainer {
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
     
-    // Right Bumper - Harita (Interpolating Map) kullanan Kusursuz Atış Sistemi (Sürüş modu için)
+    // 👉 Right Bumper - Formüle Dayalı Dinamik Atış Sistemi
     m_driverController.rightBumper().whileTrue(
         new RunCommand(() -> {
             Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_27);
-            double currentSpeed = 60.0; // Kamerayı kapatırsan atacağı varsayılan hız
+            double currentSpeed = 65.0; // Hedef yoksa atacağı varsayılan hız
 
             if (areaOpt.isPresent()) {
                 double alan = areaOpt.get();
-                // Haritadan otomatik kavisli hızı çekiyoruz
-                currentSpeed = shooterSpeedMap.get(alan);
                 
-                // Şoför ekranına anlık verileri basıyoruz, buradan bakıp kalibre edebilirsin!
+                // Hızı doğrudan cebirsel formülümüzden çekiyoruz
+                currentSpeed = getDinamikAtisHizi(alan);
+                
+                // Şoför ekranına anlık verileri basıyoruz, buradan bakıp formülü düzeltebilirsin
                 SmartDashboard.putNumber("Kamera Alan Verisi", alan);
                 SmartDashboard.putNumber("Dinamik Atis Hizi", currentSpeed);
             }
@@ -183,14 +163,11 @@ public class RobotContainer {
         () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
         .withControllerRotationAxis(() -> {
             
-            // ÇOKLU TAG METODUNU ÇAĞIRIYORUZ (20, 26, 27'den hangisini görürse ortalar)
             var midYawOpt = m_vision.getAverageYaw(20, 26, 27);
             
             if (midYawOpt.isPresent()) {
-                // Hedefi bulduysa PID ile hesaplanan dönüş hızını "return" et
                 return -aimPID.calculate(midYawOpt.get(), 0.0); 
             } else {
-                // Göremiyorsa sağ analog çubuğun değerini "return" et (manuel kontrol)
                 return m_driverController.getRightX();
             }
             
@@ -202,6 +179,23 @@ public class RobotContainer {
     m_driverController.a().whileTrue(
         drivebase.driveFieldOriented(aimAngularVelocity)
     );
+  }
+
+  // 🎯 MATEMATİKSEL ATIŞ HIZI DENKLEMİ 🎯
+  private double getDinamikAtisHizi(double anlikAlan) {
+      
+      // 👉 İŞTE SENİN FORMÜLÜN BURADA KRAL!
+      // Senin dediğin gibi: (Alan * 7^2) 
+      // Math.pow(7, 2) demek 7'nin karesi demektir (yani 49).
+      // Eğer bu sayılara ekleme çıkarma yapmak istersen denklemi dilediğin gibi uzatabilirsin.
+      
+      double hesaplananHiz = (Math.sqrt(7.2 / anlikAlan) / 2.0) * 15.0;
+      
+      // Örnek başka bir denklem denemek istersen yukarıdakini silip şunu yazabilirsin:
+      // double hesaplananHiz = (anlikAlan * 50) + 15;
+
+      // GÜVENLİK BARAJI: Yanlış bir hesapta motorlar patlamasın diye hız 30 ile 90 arasına sabitlendi.
+      return Math.max(30.0, Math.min(90.0, hesaplananHiz));
   }
 
   public Command getAutonomousCommand() {
