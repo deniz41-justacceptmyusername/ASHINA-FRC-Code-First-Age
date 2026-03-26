@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.3958487874398404,
-        "y": 2.0230385163991444
+        "x": 2.4346647646219686,
+        "y": 6.965606276747503
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.7877318116877974,
-        "y": 1.3631669044202273
+        "x": 1.8265477888699255,
+        "y": 6.305734664768586
       },
       "isLocked": false,
       "linkedName": "shattır"
     },
     {
       "anchor": {
-        "x": 0.46798858772869745,
-        "y": 0.6515406562093871
+        "x": 0.8949643366619111,
+        "y": 5.982268188302426
       },
       "prevControl": {
-        "x": 1.0890442225361157,
-        "y": 1.078516405139486
+        "x": 1.5160199714693299,
+        "y": 6.4092439372325245
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 1.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -177.2072976342867
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 40.544397166673704
+    "rotation": 127.87498365109816
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

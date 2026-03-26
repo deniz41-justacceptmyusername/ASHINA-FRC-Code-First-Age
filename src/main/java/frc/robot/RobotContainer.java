@@ -6,7 +6,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand; 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-// 👉 YENİ: Kavisli hesaplama ve ekrana veri yazdırmak için gereken kütüphaneler
+
+// Kavisli hesaplama ve ekrana veri yazdırmak için gereken kütüphaneler
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -20,6 +21,8 @@ import swervelib.SwerveInputStream;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d; // Otonomda hizalanırken robotu sabit tutmak için
+
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
@@ -38,13 +41,11 @@ public class RobotContainer {
     private final int TARGET_TAG_18 = 18;
     private final int TARGET_TAG_20 = 20;
 
-    // 👉 YENİ: Bütün mesafeler için mükemmel kavis çizen Hız Haritamız!
+    // Bütün mesafeler için mükemmel kavis çizen Hız Haritamız!
     private final InterpolatingDoubleTreeMap shooterSpeedMap = new InterpolatingDoubleTreeMap();
     
     public RobotContainer() {
       // 🎯 HARİTA DEĞERLERİ (ALAN -> HIZ)
-      // Yakınlaştıkça alan büyür (hız düşmeli), uzaklaştıkça alan küçülür (hız artmalı)
-      // Ekranda gördüğün değerlere göre burayı istediğin gibi değiştirebilirsin
       shooterSpeedMap.put(0.85, 55.0); // Çok Yakın
       shooterSpeedMap.put(0.70, 65.0); // Yakın 
       shooterSpeedMap.put(0.55, 70.0); // Orta 
@@ -70,34 +71,45 @@ public class RobotContainer {
     }
 
   private void registerPathPlannerCommands() {
+    // 1. INTAKE OPENING: Intake mekanizmasını 1.5 saniye aşağı indirir
     NamedCommands.registerCommand("intake opening", 
         new RunCommand(() -> m_intake.getdown(), m_intake)
             .withTimeout(1.5) 
             .andThen(() -> m_intake.backstop(), m_intake)
     );
 
+    // 2. INTAGE BEGIN: Intake tekerleklerini 4 saniye içeri döndürür
     NamedCommands.registerCommand("intage begin", 
         new RunCommand(() -> m_intake.setIntakeSpeed(-0.5), m_intake)
             .withTimeout(4.0) 
             .andThen(() -> m_intake.frontstop(), m_intake) 
     );
 
-    // Otonom atışını da haritaya bağladım ki otonomda da mesafeye göre atsın!
-    NamedCommands.registerCommand("shooter komutu", 
+    // 👉 YENİ 3. ALLIGN: Otonomda 0.5 saniye boyunca kameradaki hedeflere kilitlenir
+    NamedCommands.registerCommand("allign", 
         new RunCommand(() -> {
-            Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_27);
-            double currentSpeed = 65.0; 
-            if (areaOpt.isPresent()) {
-                currentSpeed = shooterSpeedMap.get(areaOpt.get());
+            // 20, 26, 27 tag'lerinin tam ortasını arıyoruz
+            var midYawOpt = m_vision.getAverageYaw(20, 26, 27);
+            double rotationSpeed = 0.0;
+            
+            if (midYawOpt.isPresent()) {
+                rotationSpeed = -aimPID.calculate(midYawOpt.get(), 0.0); 
             }
-            m_shooter.setShooterVelocity(currentSpeed);
-        }, m_shooter) 
+            
+            // 👉 HATA BURADA DÜZELTİLDİ: YAGSL kütüphanesinin çekirdek motor kontrolüne bağlandı
+            // (İleri-Geri 0, Sağ-Sol 0, Sadece kendi ekseninde rotationSpeed ile dön)
+            drivebase.getSwerveDrive().drive(new Translation2d(0, 0), rotationSpeed, false, false);
+        }, drivebase)
+        .withTimeout(0.5) 
+    );
+
+    // 👉 YENİ 4. SHOOTER KOMUTU: Otonomda 65.0 sabit hızıyla 5 saniye ateş eder
+    NamedCommands.registerCommand("shooter komutu", 
+        new RunCommand(() -> m_shooter.setShooterVelocity(65.0), m_shooter) 
             .withTimeout(5.0) 
             .andThen(() -> m_shooter.stop(), m_shooter) 
     );
-    
   }
-
 
   private void configureBindings() {
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
@@ -144,7 +156,7 @@ public class RobotContainer {
         new InstantCommand(() -> m_intake.backstop(), m_intake)
     );
     
-    // 👉 YENİ: Harita (Interpolating Map) kullanan Kusursuz Atış Sistemi
+    // Right Bumper - Harita (Interpolating Map) kullanan Kusursuz Atış Sistemi (Sürüş modu için)
     m_driverController.rightBumper().whileTrue(
         new RunCommand(() -> {
             Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_27);
@@ -166,15 +178,14 @@ public class RobotContainer {
         new InstantCommand(() -> m_shooter.stop(), m_shooter)
     );
 
-SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
+    SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
         () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()),
         () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
         .withControllerRotationAxis(() -> {
             
-            // YENİ YAZDIĞIMIZ ÇOKLU TAG METODUNU ÇAĞIRIYORUZ
+            // ÇOKLU TAG METODUNU ÇAĞIRIYORUZ (20, 26, 27'den hangisini görürse ortalar)
             var midYawOpt = m_vision.getAverageYaw(20, 26, 27);
             
-            // SÜSLÜ PARANTEZ İÇİNDE OLDUĞUMUZ İÇİN "return" KULLANMAK ZORUNLU!
             if (midYawOpt.isPresent()) {
                 // Hedefi bulduysa PID ile hesaplanan dönüş hızını "return" et
                 return -aimPID.calculate(midYawOpt.get(), 0.0); 
@@ -188,7 +199,7 @@ SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveD
         .scaleTranslation(0.5+m_driverController.getRightTriggerAxis()*0.5)
         .allianceRelativeControl(true);
 
-        m_driverController.a().whileTrue(
+    m_driverController.a().whileTrue(
         drivebase.driveFieldOriented(aimAngularVelocity)
     );
   }
