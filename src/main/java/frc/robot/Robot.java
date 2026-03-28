@@ -38,13 +38,18 @@ public class Robot extends TimedRobot {
 // ...
 
   @Override
-  public void robotInit() {
-    // Sadece gerçek robota atıldığında kamerayı başlatır.
+public void robotInit() {
+    // Sadece gerçek robota atıldığında kameraları başlatır.
     // Simülasyonda laptop kamerasını çekmeye çalışıp sistemi çökertmez!
     if (RobotBase.isReal()) {
-     // CameraServer.startAutomaticCapture();
+        // 1. Kamera (Genelde USB portuna ilk takılan, Port 0)
+        CameraServer.startAutomaticCapture("On Kamera", 0);
+        
+        // 2. Kamera (İkinci takılan, Port 1)
+        CameraServer.startAutomaticCapture("Arka Kamera", 1);
     }
   }
+  
   @Override
   public void robotPeriodic() {
     

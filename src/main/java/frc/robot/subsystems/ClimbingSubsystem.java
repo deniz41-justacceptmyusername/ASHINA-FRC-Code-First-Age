@@ -25,7 +25,7 @@ public class ClimbingSubsystem extends SubsystemBase {
         // Sağ motor için ayarlar
         SparkMaxConfig rightClimberConfig = new SparkMaxConfig();
         rightClimberConfig.apply(baseConfig); 
-        rightClimberConfig.inverted(true); 
+        rightClimberConfig.inverted(false); 
 
         // Yeni tırmanma motoru (m_climberNew) için ayarlar
         SparkMaxConfig newClimberConfig = new SparkMaxConfig();
@@ -59,7 +59,7 @@ public class ClimbingSubsystem extends SubsystemBase {
     public void RunClimber(double speed) {
         // motorları çalıştırır
         m_climberRight.set(-speed);
-        m_climberLeft.set(speed);
+        m_climberLeft.set(-speed);
     }
 
     public void Climbstop() {

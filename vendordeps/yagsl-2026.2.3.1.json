@@ -23,12 +23,6 @@
     ],
     "requires": [
         {
-            "uuid": "151ecca8-670b-4026-8160-cdd2679ef2bd",
-            "errorMessage": "ReduxLib is required!",
-            "offlineFileName": "ReduxLib.json",
-            "onlineUrl": "https://frcsdk.reduxrobotics.com/ReduxLib_2026.json"
-        },
-        {
             "uuid": "3f48eb8c-50fe-43a6-9cb7-44c86353c4cb",
             "errorMessage": "REVLib is required!",
             "offlineFileName": "REVLib.json",

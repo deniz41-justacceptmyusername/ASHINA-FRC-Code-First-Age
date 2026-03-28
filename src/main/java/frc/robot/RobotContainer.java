@@ -11,7 +11,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.ClimbingSubsystem;
-import frc.robot.subsystems.IntakeSubsystem; 
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
@@ -30,7 +31,7 @@ public class RobotContainer {
     private final IntakeSubsystem m_intake = new IntakeSubsystem(); 
     private final ShooterSubsystem m_shooter = new ShooterSubsystem();
     private final ClimbingSubsystem m_Climber = new ClimbingSubsystem();
-  
+    private final LedSubsystem m_led = new LedSubsystem();
     private final CommandXboxController m_driverController =
         new CommandXboxController(OperatorConstants.kDriverControllerPort);
     
@@ -100,13 +101,17 @@ public class RobotContainer {
     }));
 
     m_driverController.leftBumper().whileTrue(
-        new RunCommand(() -> m_intake.setIntakeSpeed(-0.475), m_intake)
+        new RunCommand(() -> m_intake.setIntakeSpeed(-0.4750), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );
-    
+        m_driverController.y().whileTrue(
+      new RunCommand(() -> m_Climber.RunClimber(-0.3),m_Climber)
+    ).onFalse(
+      new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
+    );
     m_driverController.x().whileTrue(
-      new RunCommand(() -> m_Climber.RunClimber(0.1),m_Climber)
+      new RunCommand(() -> m_Climber.RunClimber(0.3),m_Climber)
     ).onFalse(
       new InstantCommand(() -> m_Climber.Climbstop(),m_Climber)
     );
@@ -136,9 +141,15 @@ public class RobotContainer {
     );
     
     // 👉 Right Bumper - Formüle Dayalı Dinamik Atış Sistemi
+// 👉 Right Bumper - Formüle Dayalı Dinamik Atış Sistemi (Hem Kırmızı Hem Mavi)
     m_driverController.rightBumper().whileTrue(
         new RunCommand(() -> {
-            Optional<Double> areaOpt = m_vision.getTargetArea(TARGET_TAG_27);
+            // Önce Mavi İttifakın ana tagini (26) ara, yoksa Kırmızı İttifakın ana tagini (9) ara
+            Optional<Double> areaOpt = m_vision.getTargetArea(26);
+            if (areaOpt.isEmpty()) {
+                areaOpt = m_vision.getTargetArea(9);
+            }
+
             double currentSpeed = 65.0; // Hedef yoksa atacağı varsayılan hız
 
             if (areaOpt.isPresent()) {
@@ -158,16 +169,20 @@ public class RobotContainer {
         new InstantCommand(() -> m_shooter.stop(), m_shooter)
     );
 
-    SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
+SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
         () -> m_driverController.getLeftY()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()),
         () -> -m_driverController.getLeftX()*(0.5+m_driverController.getRightTriggerAxis()*0.5)*(1.3-m_driverController.getLeftTriggerAxis()))
         .withControllerRotationAxis(() -> {
             
-            var midYawOpt = m_vision.getAverageYaw(20, 26, 27);
+            // Hem Mavi (24, 26, 27) hem Kırmızı (2, 5, 9) ittifak taglerini aynı anda tara!
+            // getAverageYaw metodu hangilerini görüyorsa otomatik olarak onların ortalamasını verecektir.
+            var midYawOpt = m_vision.getAverageYaw(24, 26, 27, 2, 5, 9);
             
             if (midYawOpt.isPresent()) {
+                // Kamera bir hedefe (veya hedeflere) kilitlendi, PID ile oraya dön
                 return -aimPID.calculate(midYawOpt.get(), 0.0); 
             } else {
+                // Kamera hiçbir şey görmüyorsa şoförün sağ joystiğine kontrolü geri ver
                 return m_driverController.getRightX();
             }
             
@@ -199,6 +214,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
+    
     return new PathPlannerAuto("Auto command"); 
   }
 
