@@ -43,18 +43,18 @@ talonFXConfigs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
   
   // İki motoru aynı anda ve aynı hızda çalıştıran metot
   public void setIntakeSpeed(double speed) {
-      if(intakestat==0){
+     // if(intakestat==0){
         m_intakefront.set(speed);}
-      else m_intakefront.set(0);
+     // else m_intakefront.set(0);
         //m_intakeLeft.setControl(m_request.withOutput(speed));
-    }
+
     public void getdown() {
       m_intakeback.setControl(m_request.withOutput(0.1));
       intakestat = 0;
       m_intakeback.setNeutralMode(NeutralModeValue.Coast);
     }
     public void getup(){
-      m_intakeback.setControl(m_request.withOutput(-0.2));
+      m_intakeback.setControl(m_request.withOutput(-0.6));
       intakestat = 1;
       m_intakeback.setNeutralMode(NeutralModeValue.Brake);
       frontstop();

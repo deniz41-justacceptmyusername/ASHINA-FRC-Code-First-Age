@@ -69,10 +69,10 @@ public class RobotContainer {
             .withTimeout(4.0) 
             .andThen(() -> m_intake.frontstop(), m_intake) 
     );
-
-    NamedCommands.registerCommand("allign", 
+NamedCommands.registerCommand("allign", 
         new RunCommand(() -> {
-            var midYawOpt = m_vision.getAverageYaw(20, 26, 27);
+            // OTONOM İÇİN: Hem Mavi (24, 26, 27) hem Kırmızı (2, 5, 9) ittifak taglerini aynı anda tara!
+            var midYawOpt = m_vision.getAverageYaw(21, 26, 28, 2, 5, 10);
             double rotationSpeed = 0.0;
             
             if (midYawOpt.isPresent()) {
@@ -95,13 +95,13 @@ public class RobotContainer {
     m_driverController.b().onTrue(new InstantCommand(drivebase::zeroGyro));
 
     m_driverController.start().onTrue(new InstantCommand(() -> {
-        Pose2d mevcutKonum = drivebase.getPose();
+        Pose2d mevcutKonum = drivebase.getPose(); 
         Rotation2d tersAci = mevcutKonum.getRotation().plus(Rotation2d.fromDegrees(180));
         drivebase.resetOdometry(new Pose2d(mevcutKonum.getTranslation(), tersAci));
     }));
 
     m_driverController.leftBumper().whileTrue(
-        new RunCommand(() -> m_intake.setIntakeSpeed(-0.4750), m_intake)
+        new RunCommand(() -> m_intake.setIntakeSpeed(-0.54750), m_intake)
     ).onFalse(
         new InstantCommand(() -> m_intake.frontstop(), m_intake)
     );
@@ -176,7 +176,7 @@ SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveD
             
             // Hem Mavi (24, 26, 27) hem Kırmızı (2, 5, 9) ittifak taglerini aynı anda tara!
             // getAverageYaw metodu hangilerini görüyorsa otomatik olarak onların ortalamasını verecektir.
-            var midYawOpt = m_vision.getAverageYaw(24, 26, 27, 2, 5, 9);
+            var midYawOpt = m_vision.getAverageYaw(21, 26, 28, 2, 5, 10);
             
             if (midYawOpt.isPresent()) {
                 // Kamera bir hedefe (veya hedeflere) kilitlendi, PID ile oraya dön
