@@ -55,7 +55,7 @@ public class ShooterSubsystem extends SubsystemBase {
             double elapsedTime = m_timer.get();
 
             if (elapsedTime < 0.2) {
-                m_shooterStopper.set(-0.3); // Stopper pozitif dönüyor (senin kodundaki yöne göre)
+                m_shooterStopper.set(-0.3); 
                 
             } else {
                 m_shooterRight.setControl(m_velocityRequest.withVelocity(m_targetRPS));
@@ -63,7 +63,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
                 double leftVelocity = Math.abs(m_shooterLeft.getVelocity().getValueAsDouble());
                 double rightVelocity = Math.abs(m_shooterRight.getVelocity().getValueAsDouble());
-                double shootingThreshold = m_targetRPS - 0;
+                double shootingThreshold = m_targetRPS - 2;
 
                 if (leftVelocity >= shootingThreshold && rightVelocity >= shootingThreshold) {
                     m_shooterStopper.set(0.3); // Fırlat!

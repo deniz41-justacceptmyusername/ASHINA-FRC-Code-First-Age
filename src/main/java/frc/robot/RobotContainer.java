@@ -204,7 +204,7 @@ SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveD
       // Math.pow(7, 2) demek 7'nin karesi demektir (yani 49).
       // Eğer bu sayılara ekleme çıkarma yapmak istersen denklemi dilediğin gibi uzatabilirsin.
       
-      double hesaplananHiz = (Math.sqrt(7.2 / anlikAlan) / 2.0) * 15.0;
+      double hesaplananHiz = (Math.sqrt(7.2 / anlikAlan) / 2.0) * 40.0;
       
       // Örnek başka bir denklem denemek istersen yukarıdakini silip şunu yazabilirsin:
       // double hesaplananHiz = (anlikAlan * 50) + 15;

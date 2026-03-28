@@ -21,12 +21,6 @@
           "data": {
             "name": "shooter komutu"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "AS"
-          }
         }
       ]
     }
