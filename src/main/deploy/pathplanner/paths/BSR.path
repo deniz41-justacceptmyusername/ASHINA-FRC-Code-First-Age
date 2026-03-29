@@ -8,24 +8,24 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 12.099843081312411,
-        "y": 2.889928673323824
+        "x": 12.125720399429385,
+        "y": 3.3039657631954356
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 8.477018544935806,
-        "y": 2.3076890156918695
+        "x": 8.386447931526389,
+        "y": 2.8122967189728967
       },
       "prevControl": {
-        "x": 8.617909037963091,
-        "y": -0.017004119258324124
+        "x": 8.525721100509456,
+        "y": 0.4875061290247502
       },
       "nextControl": {
-        "x": 8.295877318116974,
-        "y": 5.296519258202568
+        "x": 8.218245363766048,
+        "y": 5.619985734664764
       },
       "isLocked": false,
       "linkedName": null
@@ -36,8 +36,8 @@
         "y": 2.191241084165479
       },
       "prevControl": {
-        "x": 10.197860199714691,
-        "y": 2.3723823109843103
+        "x": 10.210798858773181,
+        "y": 2.061854493580599
       },
       "nextControl": null,
       "isLocked": false,
@@ -52,7 +52,26 @@
   ],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "intage begin",
+      "waypointRelativePos": 0,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "intake opening",
+      "waypointRelativePos": 0.5250501002004019,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "shooter komutu",
+      "waypointRelativePos": 2.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
     "maxVelocity": 3.0,
     "maxAcceleration": 3.0,

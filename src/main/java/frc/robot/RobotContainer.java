@@ -24,6 +24,10 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Command;
+import java.util.Optional;
 
 public class RobotContainer {  
     private final VisionSubsystem m_vision = new VisionSubsystem();
@@ -214,8 +218,22 @@ SwerveInputStream aimAngularVelocity = SwerveInputStream.of(drivebase.getSwerveD
   }
 
   public Command getAutonomousCommand() {
-    
-    return new PathPlannerAuto("Auto command"); 
+
+    Optional<Alliance> ally = DriverStation.getAlliance();
+
+    if (ally.isPresent()) {
+        if (ally.get() == Alliance.Red) {
+            // Kırmızı ittifak seçiliyse kırmızı otonom komutunu döndür
+            return new PathPlannerAuto("Red Auto");
+        }
+        if (ally.get() == Alliance.Blue) {
+            // Mavi ittifak seçiliyse mavi otonom komutunu döndür
+            return new PathPlannerAuto("Auto command");
+        }
+      }
+          return null;
+
+
   }
 
   public SwerveSubsystem getDrivebase() {
